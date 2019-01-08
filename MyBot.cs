@@ -3,21 +3,25 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.AI.Luis;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 public class MyBot : IBot
 {
     private MyStateAccessors accessors;
+    private LuisRecognizer luisRecognizer;
     private DialogSet dialogs;
-    // DI で MyStateAccessors は自動解決
-    public MyBot(MyStateAccessors accessors)
+    // DI で MyStateAccessors および luisRecognizer は自動解決
+    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer)
     {
         this.accessors = accessors;
+        this.luisRecognizer = luisRecognizer;
         this.dialogs = new DialogSet(accessors.ConversationDialogState);
 
         // コンポーネントダイアログを追加
         dialogs.Add(new ProfileDialog(accessors));
         dialogs.Add(new MenuDialog());
+        dialogs.Add(new WeatherDialog());
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
@@ -28,36 +32,47 @@ public class MyBot : IBot
         // ユーザーからメッセージが来た場合
         if (turnContext.Activity.Type == ActivityTypes.Message)
         {
-            // Check for top-level interruptions.
-            string utterance = turnContext.Activity.Text.Trim().ToLowerInvariant();
-
-            if (utterance == "キャンセル")
+            var luisResult = await luisRecognizer.RecognizeAsync(turnContext, cancellationToken);
+            var topIntent = luisResult?.GetTopScoringIntent();
+            if (topIntent != null && topIntent.HasValue)
             {
-                // Cancel any dialog on the stack.
-                await turnContext.SendActivityAsync("キャンセルします", cancellationToken: cancellationToken);
-                await dialogContext.CancelAllDialogsAsync(cancellationToken);
-                await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
-            }
-            else if (utterance == "プロファイルの変更")
-            {
-                // Start a general help dialog. Dialogs already on the stack remain and will continue
-                // normally if the help dialog exits normally.
-                await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
-            }
-            else
-            {
-                // まず ContinueDialogAsync を実行して既存のダイアログがあれば継続実行。
-                var results = await dialogContext.ContinueDialogAsync(cancellationToken);
-
-                // DialogTurnStatus が Complete または Empty の場合、メニューへ。
-                if (results.Status == DialogTurnStatus.Complete || results.Status == DialogTurnStatus.Empty)
+                if (topIntent.Value.intent == "Cancel")
                 {
-                    var userProfile = await accessors.UserProfile.GetAsync(turnContext, () => new UserProfile(), cancellationToken);
-                    await turnContext.SendActivityAsync(MessageFactory.Text($"ようこそ '{userProfile.Name}' さん！"));
-                    // メニューの表示
+                    // Cancel any dialog on the stack.
+                    await turnContext.SendActivityAsync("キャンセルします", cancellationToken: cancellationToken);
+                    await dialogContext.CancelAllDialogsAsync(cancellationToken);
                     await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
                 }
+                else if (topIntent.Value.intent == "Profile")
+                {
+                    await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
+                }
+                else if (topIntent.Value.intent == "Weather")
+                {
+                    var day = luisResult.Entities["day"] == null?null:luisResult.Entities["day"][0][0].ToString();
+                    await dialogContext.BeginDialogAsync(nameof(WeatherDialog), day , cancellationToken);
+                }
+                else
+                {
+                    // ヘルプの場合は使い方を言って、そのまま処理継続
+                    if (topIntent.Value.intent == "Help")
+                    {
+                        await turnContext.SendActivityAsync("天気と予定が確認できます。", cancellationToken: cancellationToken);
+                    }
+                    // まず ContinueDialogAsync を実行して既存のダイアログがあれば継続実行。
+                    var results = await dialogContext.ContinueDialogAsync(cancellationToken);
+
+                    // DialogTurnStatus が Complete または Empty の場合、メニューへ。
+                    if (results.Status == DialogTurnStatus.Complete || results.Status == DialogTurnStatus.Empty)
+                    {
+                        var userProfile = await accessors.UserProfile.GetAsync(turnContext, () => new UserProfile(), cancellationToken);
+                        await turnContext.SendActivityAsync(MessageFactory.Text($"ようこそ '{userProfile.Name}' さん！"));
+                        // メニューの表示
+                        await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
+                    }
+                }
             }
+
             // ユーザーに応答できなかった場合
             if (!turnContext.Responded)
             {
