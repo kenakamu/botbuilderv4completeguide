@@ -1,0 +1,27 @@
+{
+    "name": "MyBot",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "appId": "",
+            "appPassword": "",
+            "endpoint": "http://localhost:5000/api/messages",
+            "id": "43feb6a0-1318-11e9-8eba-7f0d89424fb4",
+            "name": "http://localhost:5000/api/messages"
+        },
+        {
+            "type": "luis",
+            "name": "<LUIS app name>",
+            "appId": "<LUIS AppId>",
+            "version": "0.1",
+            "authoringKey": "<LUIS authoringKey>",
+            "subscriptionKey": "<LUIS subscriptionKey>",
+            "region": "<LUIS region>",
+            "id": "2"
+        }
+    ],
+    "padlock": "",
+    "version": "2.0",
+    "overrides": null
+}
