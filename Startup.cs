@@ -44,7 +44,7 @@ namespace myfirstbot
             services.AddBot<MyBot>(options =>
             {
                 options.Middleware.Add(new MyLoggingMiddleware());
-                options.Middleware.Add(new MyMiddleware());
+                //options.Middleware.Add(new MyMiddleware());
 
                 // Endpoint を構成ファイルより取得
                 EndpointService endpointService = (EndpointService)botConfig.Services.Where(x => x.Type == "endpoint").First();
