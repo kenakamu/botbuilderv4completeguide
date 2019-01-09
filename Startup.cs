@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.AI.Luis;
 using Microsoft.Bot.Builder.Dialogs;
@@ -14,6 +12,11 @@ using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using CognitiveServices.Translator.Extension;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using CognitiveServices.Translator;
+using CognitiveServices.Translator.Configuration;
 
 namespace myfirstbot
 {
@@ -40,7 +43,6 @@ namespace myfirstbot
             var luisApp = new LuisApplication(luisService.AppId, luisService.AuthoringKey, luisService.GetEndpoint());
             var luisRecognizer = new LuisRecognizer(luisApp);
             services.AddSingleton(sp => luisRecognizer);
-
             services.AddSingleton(sp => botConfig ?? throw new InvalidOperationException($"The .bot config file could not be loaded. ({botConfig})"));
 
             services.AddBot<MyBot>(options =>
@@ -60,11 +62,10 @@ namespace myfirstbot
                 options.State.Add(userState);
                 options.State.Add(conversationState);
                 options.Middleware.Add(new SetLanguageMiddleware(
-                    userState.CreateProperty<UserProfile>("UserProfile")
-                ));
+                    userState.CreateProperty<UserProfile>("UserProfile")));
             });
 
-            // MyStateAccessors を IoC に登録
+            // MyStateAccessors を IoC コンテナに登録
             services.AddSingleton(sp =>
             {
                 // AddBot で登録した options を取得。
@@ -90,7 +91,7 @@ namespace myfirstbot
                     // DialogState を作成
                     ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
                     // UserProfile を作成
-                    UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
+                    UserProfile = userState.CreateProperty<UserProfile>("UserProfile"),
                 };
 
                 return accessors;
@@ -112,7 +113,11 @@ namespace myfirstbot
                 options.SupportedUICultures = supportedCultures;
             });
 
-            // ダイアログも IoC に登録
+            // 翻訳サービスを追加
+            services.AddCognitiveServicesTranslator(Configuration);
+            services.AddScoped<ITranslateClient, TranslateClient>();
+
+            // ダイアログも IoC コンテナに登録
             services.AddScoped<LoginDialog, LoginDialog>();
             services.AddScoped<MenuDialog, MenuDialog>();
             services.AddScoped<PhotoUpdateDialog, PhotoUpdateDialog>();
