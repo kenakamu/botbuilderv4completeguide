@@ -20,7 +20,8 @@ public class MyBot : IBot
         this.dialogs = new DialogSet(accessors.ConversationDialogState);
 
         // コンポーネントダイアログを追加
-        dialogs.Add(new ProfileDialog(accessors));
+        // dialogs.Add(new ProfileDialog(accessors));
+        dialogs.Add(new WelcomeDialog(accessors));
         dialogs.Add(new MenuDialog());
         dialogs.Add(new WeatherDialog());
         dialogs.Add(new ScheduleDialog());
@@ -134,8 +135,9 @@ public class MyBot : IBot
                 var userProfile = await accessors.UserProfile.GetAsync(turnContext, () => new UserProfile(), cancellationToken);
                 if (userProfile == null || string.IsNullOrEmpty(userProfile.Name))
                 {
-                    await turnContext.SendActivityAsync("ようこそ MyBot へ！");
-                    await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
+                    //await turnContext.SendActivityAsync("ようこそ MyBot へ！");
+                    await dialogContext.BeginDialogAsync(nameof(WelcomeDialog), null, cancellationToken);
+                    //await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
                 }
                 else
                 {
