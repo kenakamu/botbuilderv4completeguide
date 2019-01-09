@@ -1,0 +1,18 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "speak": "Which day you want to look for?",    
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "tomorrow",
+            "data": "tomorrow"
+        },
+        {
+            "type": "Action.Submit",
+            "title": "the day after tomorrow",
+            "data":  "the day after tomorrow"
+        }
+    ]
+}

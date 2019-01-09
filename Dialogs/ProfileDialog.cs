@@ -5,14 +5,18 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 
 public class ProfileDialog : ComponentDialog
 {
     private MyStateAccessors accessors;
-    public ProfileDialog(MyStateAccessors accessors) : base(nameof(ProfileDialog))
+    private IStringLocalizer<ProfileDialog> localizer;
+
+    public ProfileDialog(MyStateAccessors accessors, IStringLocalizer<ProfileDialog> localizer) : base(nameof(ProfileDialog))
     {
         this.accessors = accessors;
+        this.localizer = localizer;
 
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
@@ -28,7 +32,8 @@ public class ProfileDialog : ComponentDialog
 
     private async Task<DialogTurnResult> ProfileStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        var adaptiveCardJson = File.ReadAllText("./AdaptiveJsons/Profile.json");
+        var userProfile = await accessors.UserProfile.GetAsync(stepContext.Context, ()=> new UserProfile(), cancellationToken);
+        var adaptiveCardJson = File.ReadAllText($"./AdaptiveJsons/{userProfile.Language}/Profile.json");
         var adaptiveCardAttachment = new Attachment()
         {
             ContentType = "application/vnd.microsoft.card.adaptive",
@@ -51,7 +56,10 @@ public class ProfileDialog : ComponentDialog
     private async Task<DialogTurnResult> SummaryStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         var input = JsonConvert.DeserializeObject<UserProfile>(stepContext.Context.Activity.Value.ToString());
-        await stepContext.Context.SendActivityAsync(MessageFactory.Text("プロファイルを保存します。"));
+        // 使用言語は現在のプロファイルよりコピー
+        var userProfile = await accessors.UserProfile.GetAsync(stepContext.Context, ()=> new UserProfile(), cancellationToken);
+        input.Language = userProfile.Language;
+        await stepContext.Context.SendActivityAsync(MessageFactory.Text(localizer["save"]));
         await accessors.UserProfile.SetAsync(stepContext.Context, input, cancellationToken);
         return await stepContext.EndDialogAsync(cancellationToken: cancellationToken);
     }

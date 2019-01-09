@@ -3,14 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 
 public class ScheduleDialog : ComponentDialog
 {
-    private IServiceProvider serviceProvider;
-    public ScheduleDialog(IServiceProvider serviceProvider) : base(nameof(ScheduleDialog))
-    {
-        this.serviceProvider = serviceProvider;
+    private IStringLocalizer<ScheduleDialog> localizer;
 
+    public ScheduleDialog(IServiceProvider serviceProvider, IStringLocalizer<ScheduleDialog> localizer) : base(nameof(ScheduleDialog))
+    {
+        this.localizer = localizer;
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -23,11 +24,11 @@ public class ScheduleDialog : ComponentDialog
         AddDialog((LoginDialog)serviceProvider.GetService(typeof(LoginDialog)));
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);
     }
-    private static async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
@@ -42,7 +43,7 @@ public class ScheduleDialog : ComponentDialog
             });
         }
         else
-            await stepContext.Context.SendActivityAsync($"サインインに失敗しました。", cancellationToken: cancellationToken);
+            await stepContext.Context.SendActivityAsync(localizer["failed"], cancellationToken: cancellationToken);
 
         return await stepContext.EndDialogAsync(true, cancellationToken);
     }

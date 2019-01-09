@@ -1,31 +1,26 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Choices;
+using System.Linq;
+using System;
 using Microsoft.Extensions.Localization;
 
 public class MenuDialog : ComponentDialog
-{
-    // メニューの作成。表示される文字と子ダイアログの名称をセットで登録
-    private static Dictionary<string, string> menus = new Dictionary<string, string>(){
-        { "天気を確認", nameof(WeatherDialog) },
-        { "予定を確認", nameof(ScheduleDialog) }
-    };
+{    
+    static private Dictionary<string, string> menus;
+    static private IList<Choice> choices;
+    private IStringLocalizer<MenuDialog> localizer;
 
-    // ChoiceFactory で選択肢に設定する IList<Choice> を作成
-    private static IList<Choice> choices = ChoiceFactory.ToChoices(menus.Select(x => x.Key).ToList());
-    private IServiceProvider serviceProvider;
-    public MenuDialog(IServiceProvider serviceProvider) : base(nameof(MenuDialog))
+    public MenuDialog(IServiceProvider serviceProvider, IStringLocalizer<MenuDialog> localizer) : base(nameof(MenuDialog))
     {
-        this.serviceProvider = serviceProvider;
-
+        this.localizer = localizer;
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
+            InitializeAsync,
             ShowMenuAsync,
             ProcessInputAsync,
             LoopMenu
@@ -38,14 +33,27 @@ public class MenuDialog : ComponentDialog
         AddDialog((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
     }
 
-    public static async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    public async Task<DialogTurnResult> InitializeAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    {
+        // メニューの作成。表示される文字と子ダイアログの名称をセットで登録
+        menus = new Dictionary<string, string>(){
+            { localizer["checkweather"], nameof(WeatherDialog) },
+            { localizer["checkschedule"], nameof(ScheduleDialog) },
+        };
+
+        // ChoiceFactory で選択肢に設定する IList<Choice> を作成
+        choices = ChoiceFactory.ToChoices(menus.Select(x => x.Key).ToList());
+        return await stepContext.NextAsync();
+    }
+
+    public async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // Choice プロンプトでメニューを表示
         return await stepContext.PromptAsync(
             "choice",
             new PromptOptions
             {
-                Prompt = MessageFactory.Text("今日はなにをしますか?"),
+                Prompt = MessageFactory.Text(localizer["choicemenu"]),
                 Choices = choices,
             },
             cancellationToken);
