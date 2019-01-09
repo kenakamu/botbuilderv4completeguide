@@ -1,7 +1,11 @@
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
 
 public class PhotoUpdateDialog : ComponentDialog
@@ -25,14 +29,17 @@ public class PhotoUpdateDialog : ComponentDialog
     {
         // 認証ダイアログはテキストがないと落ちるため、ダミーを設定
         stepContext.Context.Activity.Text = "dummy";
-        return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);
+        return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);       
     }
     private static async Task<DialogTurnResult> UpdatePhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
         // 親ダイアログより渡されたイメージを取得
-        var image = stepContext.Options as Stream;
+
+        // 添付ファイルを取得して MemoryStream に格納
+        var connector = new ConnectorClient(new Uri(stepContext.Context.Activity.ServiceUrl));
+        var image = await connector.HttpClient.GetStreamAsync(stepContext.Options.ToString());
         if (!string.IsNullOrEmpty(accessToken))
         {
             var graphClient = new MSGraphService(accessToken);
@@ -67,7 +74,7 @@ public class PhotoUpdateDialog : ComponentDialog
                 var image64 = System.Convert.ToBase64String(ms.ToArray());
                 // 返信に画像を設定
                 reply.Attachments.Add(new Attachment(
-                    contentType:"image/png",
+                    contentType: "image/png",
                     contentUrl: $"data:image/png;base64,{image64}"
                     ));
             }

@@ -24,6 +24,7 @@ public class MyBot : IBot
         dialogs.Add(new MenuDialog());
         dialogs.Add(new WeatherDialog());
         dialogs.Add(new ScheduleDialog());
+        dialogs.Add(new PhotoUpdateDialog());
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
@@ -36,14 +37,11 @@ public class MyBot : IBot
         {
             if (turnContext.Activity.Attachments != null)
             {
-                // 添付ファイルを取得して MemoryStream に格納
+                // 添付ファイルのアドレスを取得
                 var attachment = turnContext.Activity.Attachments.First();
-                var connector = new ConnectorClient(new Uri(turnContext.Activity.ServiceUrl));
-                var content = await connector.HttpClient.GetStreamAsync(attachment.ContentUrl);
-                var response = await connector.HttpClient.GetAsync(attachment.ContentUrl);
-
-                // PhotoUpdateDialog に対して画像を渡す
-                await dialogContext.BeginDialogAsync(nameof(PhotoUpdateDialog), await response.Content.ReadAsStreamAsync(), cancellationToken);
+                var attachmentUrl = attachment.ContentUrl;
+                // PhotoUpdateDialog に対して画像のアドレスを渡す
+                await dialogContext.BeginDialogAsync(nameof(PhotoUpdateDialog), attachmentUrl, cancellationToken);
             }
             else
             {
@@ -150,6 +148,6 @@ public class MyBot : IBot
 
         // 最後に現在の UserProfile と DialogState を保存
         await accessors.UserState.SaveChangesAsync(turnContext, false, cancellationToken);
-        await accessors.ConversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+        await accessors.ConversationState.SaveChangesAsync(turnContext, true, cancellationToken);
     }
 }
