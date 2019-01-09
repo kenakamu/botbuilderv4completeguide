@@ -44,6 +44,11 @@ public class MyBot : IBot
                 // PhotoUpdateDialog に対して画像のアドレスを渡す
                 await dialogContext.BeginDialogAsync(nameof(PhotoUpdateDialog), attachmentUrl, cancellationToken);
             }
+            else if (string.IsNullOrEmpty(turnContext.Activity.Text))
+            {
+                // Text がないためダイアログをそのまま継続
+                await dialogContext.ContinueDialogAsync(cancellationToken);
+            }
             else
             {
                 var luisResult = await luisRecognizer.RecognizeAsync(turnContext, cancellationToken);

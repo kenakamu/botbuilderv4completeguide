@@ -1,0 +1,87 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "{0}の東京の天気",
+            "size": "large",
+            "isSubtle": true
+        },
+        {
+            "type": "TextBlock",
+            "text": "曇り時々晴れ",
+            "spacing": "none"
+        },
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "http://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png",
+                            "size": "small"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "19",
+                            "size": "extraLarge",
+                            "spacing": "none"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "℃",
+                            "weight": "bolder",
+                            "spacing": "small"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "最高気温 19",
+                            "horizontalAlignment": "left"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "最低気温 12",
+                            "horizontalAlignment": "left",
+                            "spacing": "none"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "他の日の天気",
+            "data": "他の日の天気"
+        },
+        {
+            "type": "Action.Submit",
+            "title": "終了",
+            "data":  "終了"
+        }
+    ]
+}

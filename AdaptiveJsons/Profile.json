@@ -1,0 +1,88 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": 2,
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "プロファイルを登録します。あなたのことを教えてください。",
+                            "weight": "bolder",
+                            "size": "medium"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "ボットの利用にあたり、もう少し詳しくあなたの情報が必要です。",
+                            "isSubtle": true,
+                            "wrap": true
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "名前",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "name",
+                            "placeholder": "姓名"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "年齢",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Number",
+                            "id": "age",
+                            "placeholder": "0"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "メールアドレス",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "email",
+                            "placeholder": "youremail@example.com",
+                            "style": "email"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "電話番号"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "phone",
+                            "placeholder": "(xx)-xxxx-xxxx",
+                            "style": "tel"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": 1,
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Diver_Silhouette%2C_Great_Barrier_Reef.jpg",
+                            "size": "auto"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "登録"
+        }
+    ]
+}

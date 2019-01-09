@@ -1,0 +1,18 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "speak": "いつの天気を調べますか？",    
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "明日",
+            "data": "明日"
+        },
+        {
+            "type": "Action.Submit",
+            "title": "明後日",
+            "data":  "明後日"
+        }
+    ]
+}
