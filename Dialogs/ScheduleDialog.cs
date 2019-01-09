@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
@@ -5,8 +6,11 @@ using Microsoft.Bot.Schema;
 
 public class ScheduleDialog : ComponentDialog
 {
-    public ScheduleDialog() : base(nameof(ScheduleDialog))
+    private IServiceProvider serviceProvider;
+    public ScheduleDialog(IServiceProvider serviceProvider) : base(nameof(ScheduleDialog))
     {
+        this.serviceProvider = serviceProvider;
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -16,7 +20,7 @@ public class ScheduleDialog : ComponentDialog
 
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("schedule", waterfallSteps));
-        AddDialog(new LoginDialog());
+        AddDialog((LoginDialog)serviceProvider.GetService(typeof(LoginDialog)));
     }
 
     private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

@@ -10,8 +10,11 @@ using Microsoft.Bot.Schema;
 
 public class PhotoUpdateDialog : ComponentDialog
 {
-    public PhotoUpdateDialog() : base(nameof(PhotoUpdateDialog))
+    private IServiceProvider serviceProvider;
+    public PhotoUpdateDialog(IServiceProvider serviceProvider) : base(nameof(PhotoUpdateDialog))
     {
+        this.serviceProvider = serviceProvider;
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -22,7 +25,7 @@ public class PhotoUpdateDialog : ComponentDialog
 
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("updatephoto", waterfallSteps));
-        AddDialog(new LoginDialog());
+        AddDialog((LoginDialog)serviceProvider.GetService(typeof(LoginDialog)));
     }
 
     private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

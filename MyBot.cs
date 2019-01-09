@@ -13,19 +13,19 @@ public class MyBot : IBot
     private LuisRecognizer luisRecognizer;
     private DialogSet dialogs;
     // DI で MyStateAccessors および luisRecognizer は自動解決
-    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer)
+    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer, IServiceProvider serviceProvider)
     {
         this.accessors = accessors;
         this.luisRecognizer = luisRecognizer;
         this.dialogs = new DialogSet(accessors.ConversationDialogState);
 
         // コンポーネントダイアログを追加
-        // dialogs.Add(new ProfileDialog(accessors));
-        dialogs.Add(new WelcomeDialog(accessors));
-        dialogs.Add(new MenuDialog());
-        dialogs.Add(new WeatherDialog());
-        dialogs.Add(new ScheduleDialog());
-        dialogs.Add(new PhotoUpdateDialog());
+        dialogs.Add((WelcomeDialog)serviceProvider.GetService(typeof(WelcomeDialog)));
+        dialogs.Add((ProfileDialog)serviceProvider.GetService(typeof(ProfileDialog)));
+        dialogs.Add((MenuDialog)serviceProvider.GetService(typeof(MenuDialog)));
+        dialogs.Add((WeatherDialog)serviceProvider.GetService(typeof(WeatherDialog)));
+        dialogs.Add((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
+        dialogs.Add((PhotoUpdateDialog)serviceProvider.GetService(typeof(PhotoUpdateDialog)));
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))

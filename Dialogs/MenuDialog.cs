@@ -1,10 +1,12 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Choices;
-using System.Linq;
+using Microsoft.Extensions.Localization;
 
 public class MenuDialog : ComponentDialog
 {
@@ -16,9 +18,11 @@ public class MenuDialog : ComponentDialog
 
     // ChoiceFactory で選択肢に設定する IList<Choice> を作成
     private static IList<Choice> choices = ChoiceFactory.ToChoices(menus.Select(x => x.Key).ToList());
-
-    public MenuDialog() : base(nameof(MenuDialog))
+    private IServiceProvider serviceProvider;
+    public MenuDialog(IServiceProvider serviceProvider) : base(nameof(MenuDialog))
     {
+        this.serviceProvider = serviceProvider;
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -30,8 +34,8 @@ public class MenuDialog : ComponentDialog
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("menu", waterfallSteps));
         AddDialog(new ChoicePrompt("choice"));
-        AddDialog(new WeatherDialog());
-        AddDialog(new ScheduleDialog());
+        AddDialog((WeatherDialog)serviceProvider.GetService(typeof(WeatherDialog)));
+        AddDialog((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
     }
 
     public static async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

@@ -12,4 +12,5 @@ public class UserProfile
     public List<string> CatTypes { get; set; }
     public bool HasCat { get; set; }
     public bool PlayWithCat { get; set; }
+    public string Language { get; set; }
 }
