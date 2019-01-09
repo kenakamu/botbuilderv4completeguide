@@ -50,19 +50,9 @@ public class ProfileDialog : ComponentDialog
 
     private async Task<DialogTurnResult> SummaryStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        var userProfile = await accessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
-
         var input = JsonConvert.DeserializeObject<UserProfile>(stepContext.Context.Activity.Value.ToString());
-
         await stepContext.Context.SendActivityAsync(MessageFactory.Text("プロファイルを保存します。"));
-        // 必要に応じて入れる値を確認したり変更したりする。
-        userProfile.Name = input.Name;
-        userProfile.Age = input.Age;
-        userProfile.Email = input.Email;
-        userProfile.Phone = input.Phone;
-
-        // プロファイルの保存
-        await accessors.UserProfile.SetAsync(stepContext.Context, userProfile, cancellationToken);
+        await accessors.UserProfile.SetAsync(stepContext.Context, input, cancellationToken);
         return await stepContext.EndDialogAsync(cancellationToken: cancellationToken);
     }
 }

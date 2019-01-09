@@ -1,7 +1,9 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public static class AdaptiveCardResponseValidators
 {
@@ -18,14 +20,27 @@ public static class AdaptiveCardResponseValidators
             (NumberRange)promptContext.Options.Validations :
             new NumberRange() { MinValue = 0, MaxValue = 120 };
 
-        var input = JsonConvert.DeserializeObject<UserProfile>(promptContext.Context.Activity.Value.ToString());
-        // 検証する場合、ここで検証
+        // 一旦 JObject として中身をパース
+        var input = JObject.Parse(promptContext.Context.Activity.Value.ToString());
+        // CatTypes がある場合、対応する UserProfile クラスのプロパティが 、
+        // List<string> のため、JArray に変換。
+        if (input.ContainsKey("catTypes"))
+            input["catTypes"] = new JArray(input["catTypes"].ToString().Split(','));
+
+        // 誕生日から年齢を計算し新しいプロパティとして追加
+        var birthday = DateTime.Parse(input["birthday"].ToString());
+        var age = DateTime.Now.Year - birthday.Year;
+        if (DateTime.Now < birthday.AddYears(age))
+            age--;
+        input["age"] = age;
         // 0 より小さいか 120 より大きい場合は False
-        if (input.Age < range.MinValue || input.Age > range.MaxValue)
+        if (age < range.MinValue || age > range.MaxValue)
         {
-            promptContext.Context.SendActivityAsync("年齢は 1 以上 120 未満で入れてください。");
+            promptContext.Context.SendActivityAsync($"年齢が{age}歳になります。ただしい誕生日を入れてください。");
             return Task.FromResult(false);
         }
+        // 値を入れ替え
+        promptContext.Context.Activity.Value = input;
         return Task.FromResult(true);
     }
 }
