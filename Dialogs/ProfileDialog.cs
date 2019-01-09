@@ -29,7 +29,7 @@ public class ProfileDialog : ComponentDialog
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("profile", waterfallSteps));
         AddDialog(new TextPrompt("name"));
-        AddDialog(new NumberPrompt<int>("age"));
+        AddDialog(new NumberPrompt<int>("age", NumberValidators.ValidateRangeAsync));
         AddDialog(new ConfirmPrompt("confirm"));
         AddDialog(new ChoicePrompt("choice"));
     }
@@ -68,8 +68,18 @@ public class ProfileDialog : ComponentDialog
         // Result より結果の確認
         if ((bool)stepContext.Result)
         {
+            var numberRange = new NumberRange() { MinValue = 0, MaxValue = 120 };
             // 年齢を聞いてもいい場合は "age" ダイアログを送信
-            return await stepContext.PromptAsync("age", new PromptOptions { Prompt = MessageFactory.Text("年齢を入力してください。") }, cancellationToken);
+            return await stepContext.PromptAsync(
+                "age",
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("年齢を入力してください。"),
+                    RetryPrompt = MessageFactory.Text($"{numberRange.MinValue}-{numberRange.MaxValue} の数字で入力してください。"),
+                    // 検証プロパティに NumberRange を設定
+                    Validations = numberRange,
+                },
+                cancellationToken);
         }
         else
         {
