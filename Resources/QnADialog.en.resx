@@ -58,16 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="checkweather" xml:space="preserve">
-    <value>Check weather</value>
+   <data name="whatisquestion" xml:space="preserve">
+    <value>What is your question?</value>
   </data>
-  <data name="checkschedule" xml:space="preserve">
-    <value>Check schedule</value>
-  </data>
-  <data name="choicemenu" xml:space="preserve">
-    <value>What do you want to do today?</value>
-  </data>
-  <data name="checkqa" xml:space="preserve">
-    <value>Check KB</value>
+  <data name="noanswer" xml:space="preserve">
+    <value>No good match found in KB.</value>
   </data>
 </root>

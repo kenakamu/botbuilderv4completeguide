@@ -17,6 +17,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using CognitiveServices.Translator;
 using CognitiveServices.Translator.Configuration;
+using Microsoft.Bot.Builder.AI.QnA;
 
 namespace myfirstbot
 {
@@ -126,6 +127,18 @@ namespace myfirstbot
             services.AddScoped<SelectLanguageDialog, SelectLanguageDialog>();
             services.AddScoped<WeatherDialog, WeatherDialog>();
             services.AddScoped<WelcomeDialog, WelcomeDialog>();
+            services.AddScoped<QnADialog, QnADialog>();
+
+            // 構成ファイルより QnAMakerService を取得
+            var qnaMakerService = (QnAMakerService)botConfig.Services.Where(x => x.Type == "qna").First();
+            var qnaEndpoint = new QnAMakerEndpoint()
+            {
+                KnowledgeBaseId = qnaMakerService.KbId,
+                EndpointKey = qnaMakerService.EndpointKey,
+                Host = qnaMakerService.Hostname,
+            };
+            var qnaMaker = new QnAMaker(qnaEndpoint);
+            services.AddSingleton(sp => qnaMaker);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

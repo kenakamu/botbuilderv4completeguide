@@ -32,6 +32,7 @@ public class MyBot : IBot
         this.localizer = localizer;
         this.translator = translator;
         this.serviceProvider = serviceProvider;
+
         // コンポーネントダイアログを追加
         dialogs.Add((WelcomeDialog)serviceProvider.GetService(typeof(WelcomeDialog)));
         dialogs.Add((ProfileDialog)serviceProvider.GetService(typeof(ProfileDialog)));
@@ -49,7 +50,7 @@ public class MyBot : IBot
         return localizer.GetAllStrings().Select(x => x.Value).ToList();
     }
 
-    private async Task ContinueDialog(ITurnContext turnContext, DialogContext dialogContext, 
+    private async Task ContinueDialog(ITurnContext turnContext, DialogContext dialogContext,
         UserProfile userProfile, CancellationToken cancellationToken)
     {
         // まず ContinueDialogAsync を実行して既存のダイアログがあれば継続実行。
@@ -88,7 +89,7 @@ public class MyBot : IBot
                 await dialogContext.ContinueDialogAsync(cancellationToken);
             }
             else
-            {                
+            {
                 // 現在のダイアログのリソースを取得
                 var activeDialog = dialogContext.ActiveDialog.Id;
                 List<string> strings = (List<string>)
@@ -223,5 +224,24 @@ public class MyBot : IBot
         // 最後に現在の UserProfile と DialogState を保存
         await accessors.UserState.SaveChangesAsync(turnContext, false, cancellationToken);
         await accessors.ConversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+    }
+
+    private async Task CompleteJobAsync(
+               BotAdapter adapter,
+               ConversationReference conversationReference,
+               string botId,
+               string proactiveMessage,
+               CancellationToken cancellationToken = default(CancellationToken))
+    {
+        await adapter.ContinueConversationAsync(botId, conversationReference, CreateProactiveCallback(proactiveMessage), cancellationToken);
+    }
+    
+    private BotCallbackHandler CreateProactiveCallback(string proactiveMessage)
+    {
+        return async (turnContext, token) =>
+        {
+            // Send the user a proactive confirmation message.
+            await turnContext.SendActivityAsync(proactiveMessage);
+        };
     }
 }

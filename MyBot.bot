@@ -19,6 +19,15 @@
             "subscriptionKey": "<LUIS subscriptionKey>",
             "region": "<LUIS region>",
             "id": "2"
+        },
+        {
+            "type": "qna",
+            "name": "<QnA name>",
+            "kbId": "<QnA KbId>",
+            "subscriptionKey": "<QnA subscriptionKey>",
+            "endpointKey": "<QnA endpointKey>",
+            "hostname": "<QnA hostname>",
+            "id": "55"
         }
     ],
     "padlock": "",

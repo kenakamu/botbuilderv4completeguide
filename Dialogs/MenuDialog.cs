@@ -9,7 +9,7 @@ using System;
 using Microsoft.Extensions.Localization;
 
 public class MenuDialog : ComponentDialog
-{    
+{
     static private Dictionary<string, string> menus;
     static private IList<Choice> choices;
     private IStringLocalizer<MenuDialog> localizer;
@@ -31,14 +31,17 @@ public class MenuDialog : ComponentDialog
         AddDialog(new ChoicePrompt("choice"));
         AddDialog((WeatherDialog)serviceProvider.GetService(typeof(WeatherDialog)));
         AddDialog((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
+        AddDialog((QnADialog)serviceProvider.GetService(typeof(QnADialog)));
     }
 
     public async Task<DialogTurnResult> InitializeAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // メニューの作成。表示される文字と子ダイアログの名称をセットで登録
-        menus = new Dictionary<string, string>(){
+        menus = new Dictionary<string, string>()
+        {
             { localizer["checkweather"], nameof(WeatherDialog) },
             { localizer["checkschedule"], nameof(ScheduleDialog) },
+            { localizer["checkqa"], nameof(QnADialog) }
         };
 
         // ChoiceFactory で選択肢に設定する IList<Choice> を作成

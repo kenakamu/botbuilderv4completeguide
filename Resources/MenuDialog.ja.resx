@@ -67,4 +67,7 @@
   <data name="choicemenu" xml:space="preserve">
     <value>今日はなにをしますか?</value>
   </data>
+  <data name="checkqa" xml:space="preserve">
+    <value>KB を確認</value>
+  </data>
 </root>
