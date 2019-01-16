@@ -1,5 +1,6 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
+using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -12,15 +13,25 @@ namespace myfirstbot.unittest
     public class MyBotUnitTest
     {
         [TestMethod]
-        public async Task MyBot_ShouldReturnSameText()
+        public async Task MyBot_ShouldAskName()
         {
             // アダプターを作成
             var adapter = new TestAdapter();
-            
+            // ストレージとしてインメモリを利用
+            IStorage dataStore = new MemoryStorage();
+            // それぞれのステートを作成
+            var conversationState = new ConversationState(dataStore);
+            var accessors = new MyStateAccessors(conversationState)
+            {
+                // DialogState を ConversationState のプロパティとして設定
+                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+            };
             // テスト対象のクラスをインスタンス化
-            var bot = new MyBot();
+            var bot = new MyBot(accessors);
+            // テストの追加と実行
             await new TestFlow(adapter, bot.OnTurnAsync)
-                .Test("foo", "foo")
+                .Test("foo", "名前を入力してください")
+                .Test("Ken", "ようこそ 'Ken' さん！")
                 .StartTestAsync();
         }
 
