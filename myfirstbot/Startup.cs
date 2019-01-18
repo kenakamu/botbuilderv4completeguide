@@ -32,9 +32,9 @@ namespace myfirstbot
 
                 // ストレージとしてインメモリを利用
                 IStorage dataStore = new MemoryStorage();
-                // それぞれのステートを作成
+                var userState = new UserState(dataStore);
                 var conversationState = new ConversationState(dataStore);
-                // オプションに追加
+                options.State.Add(userState);
                 options.State.Add(conversationState);
             });
 
@@ -47,16 +47,24 @@ namespace myfirstbot
                 {
                     throw new InvalidOperationException("BotFrameworkOptions を事前に構成してください。");
                 }
+                var userState = options.State.OfType<UserState>().FirstOrDefault();
+                if (userState == null)
+                {
+                    throw new InvalidOperationException("UserState を事前に定義してください。");
+                }
+
                 var conversationState = options.State.OfType<ConversationState>().FirstOrDefault();
                 if (conversationState == null)
                 {
                     throw new InvalidOperationException("ConversationState を事前に定義してください。");
                 }
 
-                var accessors = new MyStateAccessors(conversationState)
+                var accessors = new MyStateAccessors(userState, conversationState)
                 {
-                    // DialogState を ConversationState のプロパティとして設定
-                    ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+            // DialogState を作成
+            ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+            // UserProfile を作成
+            UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
                 };
 
                 return accessors;
