@@ -4,7 +4,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Moq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace myfirstbot.unittest
     public class MyBotUnitTest
     {
         [TestMethod]
-        public async Task MyBot_ShouldSaveProfile()
+        public async Task MyBot_ShouldWelcomeAndProfileDialogWithConversationUpdate()
         {
             // アダプターを作成
             var adapter = new TestAdapter();
@@ -34,31 +34,53 @@ namespace myfirstbot.unittest
             };
             // テスト対象のクラスをインスタンス化
             var bot = new MyBot(accessors);
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
+            var conversationUpdateActivity = new Activity(ActivityTypes.ConversationUpdate)
+            {
+                Id = "test",
+                From = new ChannelAccount("TestUser", "Test User"),
+                ChannelId = "UnitTest",
+                ServiceUrl = "https://example.org",
+                MembersAdded = new List<ChannelAccount>() { new ChannelAccount("TestUser", "Test User") }
+            };
 
             // テストの追加と実行
             await new TestFlow(adapter, bot.OnTurnAsync)
-                .Test("foo", "名前を入力してください。")
-                .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-                .Test("はい", "年齢を入力してください。")
-                .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-                .Test("はい", "プロファイルを保存します。")
+                .Send(conversationUpdateActivity)
+                .AssertReply("ようこそ MyBot へ！")
+                .AssertReply("名前を入力してください。")
                 .StartTestAsync();
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldNotSaveProfile()
+        public async Task MyBot_ShouldWelcomeAndMenuDialogWithMessage()
         {
+            var name = "Ken";
+          
             // アダプターを作成
             var adapter = new TestAdapter();
             adapter.Use(new SetLocaleMiddleware(Culture.Japanese));
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
+
+            // ストレージとしてモックのストレージを利用
+            var mock = new Mock<IStorage>();
+            // User1用に返すデータを作成
+            // UserState のキーは <channelId>/users/<userId>
+            var dictionary = new Dictionary<string, object>();
+            dictionary.Add("test/users/user1", new Dictionary<string, object>()
+            {
+                { "UserProfile", new UserProfile() { Name = name, Age = 0 } }
+            });
+            // ストレージへの読み書きを設定
+            mock.Setup(ms => ms.WriteAsync(It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Returns(() => Task.CompletedTask);
+            mock.Setup(ms => ms.ReadAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
+                .Returns(()=>
+                {
+                    return Task.FromResult(result: (IDictionary<string, object>)dictionary);
+                });
+            
             // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
+            var conversationState = new ConversationState(mock.Object);
+            var userState = new UserState(mock.Object);
             var accessors = new MyStateAccessors(userState, conversationState)
             {
                 // DialogState を ConversationState のプロパティとして設定
@@ -66,196 +88,14 @@ namespace myfirstbot.unittest
                 // UserProfile を作成
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };
-            // テスト対象のクラスをインスタンス化
-            var bot = new MyBot(accessors);
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
 
+            var bot = new MyBot(accessors);
+           
             // テストの追加と実行
             await new TestFlow(adapter, bot.OnTurnAsync)
-                .Test("foo", "名前を入力してください。")
-                .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-                .Test("はい", "年齢を入力してください。")
-                .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-                .Test("いいえ", "プロファイルを破棄します。")
+                .Test("foo", $"ようこそ '{name}' さん！")
+                .AssertReply("今日はなにをしますか? (1) 天気を確認 または (2) 予定を確認")
                 .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task MyBot_ShouldSaveProfileWithoutAge()
-        {
-            // アダプターを作成
-            var adapter = new TestAdapter();
-            adapter.Use(new SetLocaleMiddleware(Culture.Japanese));
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
-            // テスト対象のクラスをインスタンス化
-            var bot = new MyBot(accessors);
-            // テスト用の変数
-            var name = "Ken";
-            var age = 0;
-
-            // テストの追加と実行
-            await new TestFlow(adapter, bot.OnTurnAsync)
-                .Test("foo", "名前を入力してください。")
-                .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-                .Test("いいえ", $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-                .Test("はい", "プロファイルを保存します。")
-                .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfile()
-        {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
-            // テスト対象のダイアログをインスタンス化
-            var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new ProfileDialog(accessors));
-
-            // アダプターを作成し必要なミドルウェアを追加
-            var adapter = new TestAdapter()
-                .Use(new SetLocaleMiddleware(Culture.Japanese))
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
-
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
-
-            // テストの追加と実行
-            await new TestFlow(adapter, async (turnContext, cancellationToken) =>
-            {
-                // ダイアログに必要なコードだけ追加
-                var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
-
-                var results = await dialogContext.ContinueDialogAsync(cancellationToken);
-                if (results.Status == DialogTurnStatus.Empty)
-                {
-                    await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
-                }
-            })
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-            .Test("はい", "プロファイルを保存します。")
-            .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task ProfileDialog_ShouldNotSaveProfile()
-        {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
-            // テスト対象のダイアログをインスタンス化
-            var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new ProfileDialog(accessors));
-
-            // アダプターを作成し必要なミドルウェアを追加
-            var adapter = new TestAdapter()
-                .Use(new SetLocaleMiddleware(Culture.Japanese))
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
-
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
-
-            // テストの追加と実行
-            await new TestFlow(adapter, async (turnContext, cancellationToken) =>
-            {
-                // ダイアログに必要なコードだけ追加
-                var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
-
-                var results = await dialogContext.ContinueDialogAsync(cancellationToken);
-                if (results.Status == DialogTurnStatus.Empty)
-                {
-                    await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
-                }
-            })
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-            .Test("いいえ", "プロファイルを破棄します。")
-            .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfileWithoutAge()
-        {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
-            // テスト対象のダイアログをインスタンス化
-            var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new ProfileDialog(accessors));
-
-            // アダプターを作成し必要なミドルウェアを追加
-            var adapter = new TestAdapter()
-                .Use(new SetLocaleMiddleware(Culture.Japanese))
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
-
-            // テスト用の変数
-            var name = "Ken";
-            var age = 0;
-
-            // テストの追加と実行
-            await new TestFlow(adapter, async (turnContext, cancellationToken) =>
-            {
-                // ダイアログに必要なコードだけ追加
-                var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
-
-                var results = await dialogContext.ContinueDialogAsync(cancellationToken);
-                if (results.Status == DialogTurnStatus.Empty)
-                {
-                    await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
-                }
-            })
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("いいえ", $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい または (2) いいえ")
-            .Test("はい", "プロファイルを保存します。")
-            .StartTestAsync();
         }
 
         [TestMethod]
