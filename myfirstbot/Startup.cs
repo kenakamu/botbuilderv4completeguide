@@ -3,9 +3,11 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.AI.Luis;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Integration;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -22,9 +24,22 @@ namespace myfirstbot
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var secretKey = Configuration.GetSection("botFileSecret")?.Value;
+            var botFilePath = Configuration.GetSection("botFilePath")?.Value;
+
+            // 構成ファイルの読込み
+            var botConfig = BotConfiguration.Load(botFilePath ?? @".\BotConfiguration.bot", secretKey);
+            // 構成ファイルより LuisService を取得
+            var luisService = (LuisService) botConfig.Services.Where(x=>x.Type == "luis").First();
+            // 構成情報より LuisApplication を作成
+            var luisApp = new LuisApplication(luisService.AppId, luisService.AuthoringKey, luisService.GetEndpoint());
+            var luisRecognizer = new LuisRecognizer(luisApp);
+            services.AddSingleton<IRecognizer>(sp => luisRecognizer);
+
+            services.AddSingleton(sp => botConfig ?? throw new InvalidOperationException($"The .bot config file could not be loaded. ({botConfig})"));
+
             services.AddBot<MyBot>(options =>
             {
                 options.Middleware.Add(new MyLoggingMiddleware());
@@ -61,10 +76,10 @@ namespace myfirstbot
 
                 var accessors = new MyStateAccessors(userState, conversationState)
                 {
-            // DialogState を作成
-            ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-            // UserProfile を作成
-            UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
+                    // DialogState を作成
+                    ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+                    // UserProfile を作成
+                    UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
                 };
 
                 return accessors;
