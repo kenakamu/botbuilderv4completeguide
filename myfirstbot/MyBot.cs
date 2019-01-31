@@ -22,6 +22,7 @@ public class MyBot : IBot
         dialogs.Add(new ProfileDialog(accessors));
         dialogs.Add(new MenuDialog());
         dialogs.Add(new WeatherDialog());
+        dialogs.Add(new ScheduleDialog());
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
@@ -49,8 +50,26 @@ public class MyBot : IBot
                 }
                 else if (topIntent.Value.intent == "Weather")
                 {
-                    var day = luisResult.Entities["day"] == null?null:luisResult.Entities["day"][0][0].ToString();
-                    await dialogContext.BeginDialogAsync(nameof(WeatherDialog), day , cancellationToken);
+                    var day = luisResult.Entities["day"] == null ? null : luisResult.Entities["day"][0][0].ToString();
+                    await dialogContext.BeginDialogAsync(nameof(WeatherDialog), day, cancellationToken);
+                }
+                else if (topIntent.Value.intent == "Schedule")
+                {
+                    await dialogContext.BeginDialogAsync(nameof(ScheduleDialog), null, cancellationToken);
+                }
+                else if (topIntent.Value.intent == "Logout")
+                {
+                    // アダプターを取得
+                    var botAdapter = (BotFrameworkAdapter)turnContext.Adapter;
+                    // 指定した接続をログアウト
+                    await botAdapter.SignOutUserAsync(turnContext, "AzureAdv2", cancellationToken: cancellationToken);
+                    await turnContext.SendActivityAsync("ログアウトしました。", cancellationToken: cancellationToken);
+                    var results = await dialogContext.ContinueDialogAsync(cancellationToken);
+
+                    // DialogTurnStatus が Complete または Empty の場合、メニューへ。
+                    if (results.Status == DialogTurnStatus.Complete || results.Status == DialogTurnStatus.Empty)
+                        // メニューの表示
+                        await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
                 }
                 else
                 {
@@ -74,6 +93,17 @@ public class MyBot : IBot
             }
 
             // ユーザーに応答できなかった場合
+            if (!turnContext.Responded)
+            {
+                await turnContext.SendActivityAsync("わかりませんでした。全てキャンセルします。", cancellationToken: cancellationToken);
+                await dialogContext.CancelAllDialogsAsync(cancellationToken);
+                await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
+            }
+        }
+        else if (turnContext.Activity.Type == ActivityTypes.Event || turnContext.Activity.Type == ActivityTypes.Invoke)
+        {
+            // Event または Invoke で戻ってきた場合ダイアログを続ける
+            await dialogContext.ContinueDialogAsync(cancellationToken);
             if (!turnContext.Responded)
             {
                 await turnContext.SendActivityAsync("わかりませんでした。全てキャンセルします。", cancellationToken: cancellationToken);

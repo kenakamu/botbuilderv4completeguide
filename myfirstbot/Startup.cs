@@ -8,6 +8,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Integration;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Configuration;
+using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -32,7 +33,7 @@ namespace myfirstbot
             // 構成ファイルの読込み
             var botConfig = BotConfiguration.Load(botFilePath ?? @".\BotConfiguration.bot", secretKey);
             // 構成ファイルより LuisService を取得
-            var luisService = (LuisService) botConfig.Services.Where(x=>x.Type == "luis").First();
+            var luisService = (LuisService)botConfig.Services.Where(x => x.Type == "luis").First();
             // 構成情報より LuisApplication を作成
             var luisApp = new LuisApplication(luisService.AppId, luisService.AuthoringKey, luisService.GetEndpoint());
             var luisRecognizer = new LuisRecognizer(luisApp);
@@ -44,6 +45,11 @@ namespace myfirstbot
             {
                 options.Middleware.Add(new MyLoggingMiddleware());
                 options.Middleware.Add(new MyMiddleware());
+
+                // Endpoint を構成ファイルより取得
+                EndpointService endpointService = (EndpointService)botConfig.Services.Where(x => x.Type == "endpoint").First();
+                // 認証として　AppId と AppPassword を使うように設定
+                options.CredentialProvider = new SimpleCredentialProvider(endpointService.AppId, endpointService.AppPassword);
 
                 // ストレージとしてインメモリを利用
                 IStorage dataStore = new MemoryStorage();
