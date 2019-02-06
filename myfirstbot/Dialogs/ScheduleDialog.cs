@@ -5,39 +5,41 @@ using Microsoft.Bot.Schema;
 
 public class ScheduleDialog : ComponentDialog
 {
-    private const string connectionName = "AzureAdv2";
     public ScheduleDialog() : base(nameof(ScheduleDialog))
     {
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
             LoginAsync,
-            LoginStepAsync,
+            GetScheduleAsync,
         };
 
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("schedule", waterfallSteps));
-        AddDialog(new OAuthPrompt(
-                "login",
-                new OAuthPromptSettings
-                {
-                    ConnectionName = connectionName,
-                    Text = "サインインダイアログ",
-                    Title = "サインイン",
-                    Timeout = 300000, // 5分でタイムアウトするように設定
-                }));
+        AddDialog(new LoginDialog());
     }
 
     private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        return await stepContext.BeginDialogAsync("login", cancellationToken: cancellationToken);
+        return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);
     }
-    private static async Task<DialogTurnResult> LoginStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private static async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
-        var tokenResponse = (TokenResponse)stepContext.Result;
+        var accessToken = (string)stepContext.Result;
 
-        await stepContext.Context.SendActivityAsync($"Token: {tokenResponse.Token}", cancellationToken: cancellationToken);
-        return await stepContext.EndDialogAsync();
+        if (!string.IsNullOrEmpty(accessToken))
+        {
+            var graphClient = new MSGraphService(accessToken);
+            var events = await graphClient.GetScheduleAsync();
+            events.ForEach(async x =>
+            {
+                await stepContext.Context.SendActivityAsync($"{System.DateTime.Parse(x.Start.DateTime).ToString("HH:mm")}-{System.DateTime.Parse(x.End.DateTime).ToString("HH:mm")} : {x.Subject}", cancellationToken: cancellationToken);
+            });
+        }
+        else
+            await stepContext.Context.SendActivityAsync($"サインインに失敗しました。", cancellationToken: cancellationToken);
+
+        return await stepContext.EndDialogAsync(true, cancellationToken);
     }
 }
