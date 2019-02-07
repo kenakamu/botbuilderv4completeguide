@@ -10,10 +10,10 @@ using Microsoft.Bot.Schema;
 public class MyBot : IBot
 {
     private MyStateAccessors accessors;
-    private LuisRecognizer luisRecognizer;
+    private IRecognizer luisRecognizer;
     private DialogSet dialogs;
     // DI で MyStateAccessors および luisRecognizer は自動解決
-    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer)
+    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer)
     {
         this.accessors = accessors;
         this.luisRecognizer = luisRecognizer;

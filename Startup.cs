@@ -37,7 +37,7 @@ namespace myfirstbot
             // 構成情報より LuisApplication を作成
             var luisApp = new LuisApplication(luisService.AppId, luisService.AuthoringKey, luisService.GetEndpoint());
             var luisRecognizer = new LuisRecognizer(luisApp);
-            services.AddSingleton(sp => luisRecognizer);
+            services.AddSingleton<IRecognizer>(sp => luisRecognizer);
 
             services.AddSingleton(sp => botConfig ?? throw new InvalidOperationException($"The .bot config file could not be loaded. ({botConfig})"));
 
