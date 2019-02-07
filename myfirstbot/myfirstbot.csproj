@@ -15,4 +15,10 @@
     <PackageReference Include="Microsoft.Graph" Version="1.12.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="MyBot.bot">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

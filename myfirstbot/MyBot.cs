@@ -13,7 +13,7 @@ public class MyBot : IBot
     private IRecognizer luisRecognizer;
     private DialogSet dialogs;
     // DI で MyStateAccessors および luisRecognizer は自動解決
-    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer)
+    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer, MSGraphService graphClient)
     {
         this.accessors = accessors;
         this.luisRecognizer = luisRecognizer;
@@ -21,10 +21,10 @@ public class MyBot : IBot
 
         // コンポーネントダイアログを追加
         dialogs.Add(new ProfileDialog(accessors));
-        dialogs.Add(new MenuDialog());
+        dialogs.Add(new MenuDialog(graphClient));
         dialogs.Add(new WeatherDialog());
-        dialogs.Add(new ScheduleDialog());
-        dialogs.Add(new PhotoUpdateDialog());
+        dialogs.Add(new ScheduleDialog(graphClient));
+        dialogs.Add(new PhotoUpdateDialog(graphClient));
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))

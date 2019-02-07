@@ -5,10 +5,13 @@ using Microsoft.Bot.Schema;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using myfirstbot.unittest.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +19,8 @@ namespace myfirstbot.unittest
 {
     [TestClass]
     public class MyBotUnitTest
-    {
+    {       
+
         // テスト用変数
         string name = "Ken";
 
@@ -75,10 +79,11 @@ namespace myfirstbot.unittest
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };
 
+            var msGraphService = new MSGraphService(null);
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new ProfileDialog(accessors));
-            dialogs.Add(new MenuDialog());
+            dialogs.Add(new MenuDialog(msGraphService));
 
             // IRecognizer のモック化
             var mockRecognizer = new Mock<IRecognizer>();
@@ -117,7 +122,11 @@ namespace myfirstbot.unittest
                     return Task.FromResult(recognizerResult);
                 });
             // テスト対象のクラスをインスタンス化
-            var bot = new MyBot(accessors, mockRecognizer.Object);
+            var bot = new MyBot(accessors, mockRecognizer.Object, msGraphService);
+
+            // 差し替える必要があるものを差し替え
+            var photoUpdateDialog = new DummyDialog(nameof(PhotoUpdateDialog));
+            bot.ReplaceDialog(photoUpdateDialog);
 
             // TestFlow の作成
             var testFlow = new TestFlow(adapter, bot.OnTurnAsync);
@@ -248,6 +257,40 @@ namespace myfirstbot.unittest
                     Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
                 .StartTestAsync();
+        }
+
+        [TestMethod]
+        public async Task MyBot_ShouldGoToPhotoUpdateDialog()
+        {
+            var arrange = ArrangeTest(true);
+            var attachmentActivity = new Activity(ActivityTypes.Message)
+            {
+                Id = "test",
+                From = new ChannelAccount("TestUser", "Test User"),
+                ChannelId = "UnitTest",
+                ServiceUrl = "https://example.org",
+                Attachments = new List<Microsoft.Bot.Schema.Attachment>()
+                {
+                    new Microsoft.Bot.Schema.Attachment(
+                        "image/pgn",
+                        "https://github.com/apple-touch-icon.png"
+                    )
+                }
+            };
+
+            await arrange.testFlow
+            .Send(attachmentActivity)
+            .AssertReply((activity) =>
+            {
+                // Activity とアダプターからコンテキストを作成
+                var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+                // ダイアログコンテキストを取得
+                var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+                // 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
+                var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
+                Assert.AreEqual(dialogInstances[0].Id, "choice");
+            })
+            .StartTestAsync();
         }
 
         [TestMethod]

@@ -1,18 +1,21 @@
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.Graph;
 
 public class MSGraphService
 {
-    private string token;
-    public MSGraphService(string token)
+    public string Token { get; set; }
+
+    private IGraphServiceClient graphClient;
+
+
+    public MSGraphService(IGraphServiceClient graphClient)
     {
-        this.token = token;
+        this.graphClient = graphClient;
     }
 
     public async Task<User> GetMeAsync()
@@ -47,18 +50,25 @@ public class MSGraphService
         return events.CurrentPage.ToList();
     }
 
-    private GraphServiceClient GetAuthenticatedClient()
+    private IGraphServiceClient GetAuthenticatedClient()
     {
-        var graphClient = new GraphServiceClient(
-            new DelegateAuthenticationProvider(
-                requestMessage =>
-                {
+        if(string.IsNullOrEmpty(Token))
+        {
+            throw new ArgumentNullException("Token is null");
+        }
+
+        if (graphClient is GraphServiceClient)
+        {
+            (graphClient.AuthenticationProvider as DelegateAuthenticationProvider).AuthenticateRequestAsyncDelegate =
+                    requestMessage =>
+                    {
                     // トークンを指定
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", token);
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", Token);
                     // タイムゾーンを指定
                     requestMessage.Headers.Add("Prefer", "outlook.timezone=\"" + TimeZoneInfo.Local.Id + "\"");
-                    return Task.CompletedTask;
-                }));
+                        return Task.CompletedTask;
+                    };
+        }
         return graphClient;
     }
 }

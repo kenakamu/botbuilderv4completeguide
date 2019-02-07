@@ -17,7 +17,7 @@ public class MenuDialog : ComponentDialog
     // ChoiceFactory で選択肢に設定する IList<Choice> を作成
     private static IList<Choice> choices = ChoiceFactory.ToChoices(menus.Select(x => x.Key).ToList());
 
-    public MenuDialog() : base(nameof(MenuDialog))
+    public MenuDialog(MSGraphService graphClient) : base(nameof(MenuDialog))
     {
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
@@ -31,7 +31,7 @@ public class MenuDialog : ComponentDialog
         AddDialog(new WaterfallDialog("menu", waterfallSteps));
         AddDialog(new ChoicePrompt("choice"));
         AddDialog(new WeatherDialog());
-        AddDialog(new ScheduleDialog());
+        AddDialog(new ScheduleDialog(graphClient));
     }
 
     public static async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

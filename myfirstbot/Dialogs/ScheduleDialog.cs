@@ -5,8 +5,10 @@ using Microsoft.Bot.Schema;
 
 public class ScheduleDialog : ComponentDialog
 {
-    public ScheduleDialog() : base(nameof(ScheduleDialog))
+    private MSGraphService graphClient;
+    public ScheduleDialog(MSGraphService graphClient) : base(nameof(ScheduleDialog))
     {
+        this.graphClient = graphClient;
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -19,18 +21,18 @@ public class ScheduleDialog : ComponentDialog
         AddDialog(new LoginDialog());
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);
     }
-    private static async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
 
         if (!string.IsNullOrEmpty(accessToken))
         {
-            var graphClient = new MSGraphService(accessToken);
+            this.graphClient.Token = accessToken;
             var events = await graphClient.GetScheduleAsync();
             events.ForEach(async x =>
             {

@@ -1,6 +1,7 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Graph;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,15 +9,20 @@ using Moq;
 using myfirstbot.unittest.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
 {
     [TestClass]
-    public class ScheduleDialogUnitTest
+    public class PhotoUpdateDialogUnitTest
     {
-        // ダミーの予定用の時刻
-        DateTime datetime = DateTime.Now;
+        private string attachmentUrl = "https://github.com/apple-touch-icon.png";
 
         private TestFlow ArrangeTestFlow()
         {
@@ -35,36 +41,27 @@ namespace myfirstbot.unittest
 
             // Microsoft Graph 系のモック
             var mockGraphSDK = new Mock<IGraphServiceClient>();
-            // ダミーの予定を返す。
-            mockGraphSDK.Setup(x => x.Me.CalendarView.Request(It.IsAny<List<QueryOption>>()).GetAsync())
-                .ReturnsAsync(() => 
+            // プロファイル写真の操作をモック
+            mockGraphSDK.Setup(x => x.Me.Photo.Content.Request(null).PutAsync(It.IsAny<Stream>()))
+                .Returns(Task.FromResult(default(Stream)));
+
+            mockGraphSDK.Setup(x => x.Me.Photo.Content.Request(null).GetAsync())
+                .Returns(async () =>
                 {
-                    var page = new UserCalendarViewCollectionPage();
-                    page.Add(new Event()
-                    {
-                        Subject = "Dummy 1",
-                        Start = new DateTimeTimeZone() { DateTime = datetime.ToString() },
-                        End = new DateTimeTimeZone() { DateTime = datetime.AddMinutes(30).ToString() }
-                    });
-                    page.Add(new Event()
-                    {
-                        Subject = "Dummy 2",
-                        Start = new DateTimeTimeZone() { DateTime = datetime.AddMinutes(60).ToString() },
-                        End = new DateTimeTimeZone() { DateTime = datetime.AddMinutes(90).ToString() }
-                    });
-                    return page;
+                    return new MemoryStream();
                 });
+
             var msGraphService = new MSGraphService(mockGraphSDK.Object);
             
             // テスト対象のダイアログをインスタンス化
             var loginDialog = new LoginDialog();
             // OAuthPrompt をテスト用のプロンプトに差し替え
             loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
-            var scheduleDialog = new ScheduleDialog(msGraphService);
+            var photoUpdateDialog = new PhotoUpdateDialog(msGraphService);
             // ログインダイアログを上記でつくったものに差し替え
-            scheduleDialog.ReplaceDialog(loginDialog);
+            photoUpdateDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(scheduleDialog);
+            dialogs.Add(photoUpdateDialog);
             dialogs.Add(loginDialog);
 
             // アダプターを作成し必要なミドルウェアを追加
@@ -81,18 +78,20 @@ namespace myfirstbot.unittest
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
                 if (results.Status == DialogTurnStatus.Empty)
                 {
-                    await dialogContext.BeginDialogAsync(nameof(ScheduleDialog), null, cancellationToken);
+                    await dialogContext.BeginDialogAsync(nameof(PhotoUpdateDialog), attachmentUrl, cancellationToken);
                 }
             });
         }
 
         [TestMethod]
-        public async Task ScheduleDialog_ShouldReturnEvents()
-        {
+        public async Task PhotoUpdateDialogShouldUpdateAndReturnPicture()
+        {            
             await ArrangeTestFlow()
             .Send("foo")
-            .AssertReply($"{datetime.ToString("HH:mm")}-{datetime.AddMinutes(30).ToString("HH:mm")} : Dummy 1")
-            .AssertReply($"{datetime.AddMinutes(60).ToString("HH:mm")}-{datetime.AddMinutes(90).ToString("HH:mm")} : Dummy 2")
+            .AssertReply((activity) =>
+            {
+                Assert.IsTrue((activity as Activity).Attachments.Count == 1);
+            })
             .StartTestAsync();
         }
     }

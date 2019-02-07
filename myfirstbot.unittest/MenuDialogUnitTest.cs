@@ -31,7 +31,7 @@ namespace myfirstbot.unittest
             };
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new MenuDialog());
+            dialogs.Add(new MenuDialog(new MSGraphService(null)));
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()

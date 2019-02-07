@@ -10,8 +10,10 @@ using Microsoft.Bot.Schema;
 
 public class PhotoUpdateDialog : ComponentDialog
 {
-    public PhotoUpdateDialog() : base(nameof(PhotoUpdateDialog))
+    private MSGraphService graphClient;
+    public PhotoUpdateDialog(MSGraphService graphClient) : base(nameof(PhotoUpdateDialog))
     {
+        this.graphClient = graphClient;
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -25,13 +27,13 @@ public class PhotoUpdateDialog : ComponentDialog
         AddDialog(new LoginDialog());
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // 認証ダイアログはテキストがないと落ちるため、ダミーを設定
         stepContext.Context.Activity.Text = "dummy";
         return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);       
     }
-    private static async Task<DialogTurnResult> UpdatePhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> UpdatePhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
@@ -42,7 +44,7 @@ public class PhotoUpdateDialog : ComponentDialog
         var image = await connector.HttpClient.GetStreamAsync(stepContext.Options.ToString());
         if (!string.IsNullOrEmpty(accessToken))
         {
-            var graphClient = new MSGraphService(accessToken);
+            graphClient.Token = accessToken;
             await graphClient.UpdatePhotoAsync(image);
         }
         else
@@ -51,7 +53,7 @@ public class PhotoUpdateDialog : ComponentDialog
         return await stepContext.NextAsync(accessToken, cancellationToken);
     }
 
-    private static async Task<DialogTurnResult> GetPhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> GetPhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // 前の処理よりトークンを取得
         var accessToken = (string)stepContext.Result;
@@ -60,7 +62,7 @@ public class PhotoUpdateDialog : ComponentDialog
             // 返信の作成
             var reply = stepContext.Context.Activity.CreateReply();
             // 現在の写真を取得
-            var graphClient = new MSGraphService(accessToken);
+            graphClient.Token = accessToken;
             var image = await graphClient.GetPhotoAsync();
             byte[] buffer = new byte[16 * 1024];
             using (MemoryStream ms = new MemoryStream())

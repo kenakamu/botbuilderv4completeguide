@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
@@ -12,6 +13,7 @@ using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
 
 namespace myfirstbot
 {
@@ -58,6 +60,11 @@ namespace myfirstbot
                 options.State.Add(userState);
                 options.State.Add(conversationState);
             });
+
+            // MSGraph 関連 を IoC に登録
+            services.AddTransient<IGraphServiceClient>(sp => new GraphServiceClient(
+                new DelegateAuthenticationProvider((request)=> { return Task.CompletedTask; })));
+            services.AddTransient(sp => new MSGraphService(sp.GetRequiredService<IGraphServiceClient>()));
 
             // MyStateAccessors を IoC に登録
             services.AddSingleton(sp =>
