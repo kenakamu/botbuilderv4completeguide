@@ -22,7 +22,6 @@ public class MyBot : IBot
         // コンポーネントダイアログを追加
         // dialogs.Add(new ProfileDialog(accessors));
         dialogs.Add(new WelcomeDialog(accessors));
-        dialogs.Add(new MenuDialog());
         dialogs.Add(new ProfileDialog(accessors));
         dialogs.Add(new MenuDialog(graphClient));
         dialogs.Add(new WeatherDialog());

@@ -193,16 +193,15 @@ namespace myfirstbot.unittest
             // テストの追加と実行
             await arrange.testFlow
                 .Send(conversationUpdateActivity)
-                .AssertReply("ようこそ MyBot へ！")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
                     // ダイアログコンテキストを取得
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が ProfileDialog の name であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(ProfileDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "name");
+                    // 現在のダイアログスタックの一番上が WelcomeDialog の checkStatus であることを確認。
+                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WelcomeDialog)).First().State["dialogs"] as DialogState).DialogStack;
+                    Assert.AreEqual(dialogInstances[0].Id, "checkStatus");
                 })
                 .StartTestAsync();
         }
