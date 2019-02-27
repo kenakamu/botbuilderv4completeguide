@@ -1,0 +1,182 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": 2,
+                    "items": [   
+                        {
+                            "type": "TextBlock",
+                            "text": "プロファイルを登録します。",
+                            "weight": "bolder",
+                            "size": "medium"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "ボットの利用にあたり、もう少し詳しくあなたの情報が必要です。",
+                            "isSubtle": true,
+                            "wrap": true
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "名前",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "name",
+                            "placeholder": "姓名",
+                            "style": "text"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "誕生日",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Date",
+                            "id": "birthday"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "メールアドレス",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "email",
+                            "placeholder": "youremail@example.com",
+                            "style": "email"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "電話番号"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "phone",
+                            "placeholder": "(xx)-xxxx-xxxx",
+                            "style": "tel"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "ネコ飼っていますか？"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "hasCat",
+                            "style": "expanded",
+                            "value":"true",
+                            "choices": [
+                                {
+                                    "title": "はい",
+                                    "value": "true"
+                                },
+                                {
+                                    "title": "いいえ",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "飼っているネコの種類を教えてください。(複数選択可)"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "catTypes",
+                            "isMultiSelect": true,
+                            "choices": [
+                                {
+                                    "title": "サバトラ",
+                                    "value": "サバトラ"
+                                },
+                                {
+                                    "title": "キジトラ",
+                                    "value": "キジトラ"
+                                },
+                                {
+                                    "title": "ハチワレ",
+                                    "value": "ハチワレ"
+                                },
+                                {
+                                    "title": "その他",
+                                    "value": "その他"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "全部で何匹いますか？"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "catNum",
+                            "style": "compact",
+                            "value": "1",
+                            "choices": [
+                                {
+                                    "title": "1",
+                                    "value": "1"
+                                },
+                                {
+                                    "title": "2",
+                                    "value": "2"
+                                },
+                                {
+                                    "title": "3",
+                                    "value": "3"
+                                },
+                                {
+                                    "title": "4",
+                                    "value": "4"
+                                },
+                                {
+                                    "title": "5",
+                                    "value": "5"
+                                },
+                                {
+                                    "title": "6匹以上",
+                                    "value": "6+"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "毎日ネコと遊んでいますか？"
+                        },
+                        {
+                            "type": "Input.Toggle",
+                            "title": "毎日ネコを遊んでいます。",
+                            "valueOn": "true",
+                            "valueOff": "false",
+                            "id": "playWithCat"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": 1,
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Pumiforme.JPG/1280px-Pumiforme.JPG",
+                            "size": "auto"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "登録"
+        }
+    ]
+}

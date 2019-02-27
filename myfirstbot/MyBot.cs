@@ -45,6 +45,11 @@ public class MyBot : IBot
                 // PhotoUpdateDialog に対して画像のアドレスを渡す
                 await dialogContext.BeginDialogAsync(nameof(PhotoUpdateDialog), attachmentUrl, cancellationToken);
             }
+            else if (string.IsNullOrEmpty(turnContext.Activity.Text))
+            {
+                // Text がないためダイアログをそのまま継続
+                await dialogContext.ContinueDialogAsync(cancellationToken);
+            }
             else
             {
                 var luisResult = await luisRecognizer.RecognizeAsync(turnContext, cancellationToken);
@@ -100,6 +105,8 @@ public class MyBot : IBot
                         {
                             var userProfile = await accessors.UserProfile.GetAsync(turnContext, () => new UserProfile(), cancellationToken);
                             await turnContext.SendActivityAsync(MessageFactory.Text($"ようこそ '{userProfile.Name}' さん！"));
+                            if (userProfile.HasCat)
+                                await turnContext.SendActivityAsync(MessageFactory.Text($"{userProfile.CatNum}匹の猫は元気ですか？"));
                             // メニューの表示
                             await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
                         }
@@ -143,6 +150,8 @@ public class MyBot : IBot
                 else
                 {
                     await turnContext.SendActivityAsync(MessageFactory.Text($"ようこそ '{userProfile.Name}' さん！"));
+                    if (userProfile.HasCat)
+                        await turnContext.SendActivityAsync(MessageFactory.Text($"{userProfile.CatNum}匹の猫は元気ですか？"));
                     // メニューの表示
                     await dialogContext.BeginDialogAsync(nameof(MenuDialog), null, cancellationToken);
                 }
