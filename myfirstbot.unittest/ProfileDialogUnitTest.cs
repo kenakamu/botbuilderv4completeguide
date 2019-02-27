@@ -1,16 +1,22 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
 {
     [TestClass]
     public class ProfileDialogUnitTest
-    {       
+    {
 
         private TestFlow ArrangeTestFlow()
         {
@@ -51,93 +57,83 @@ namespace myfirstbot.unittest
 
         [TestMethod]
         public async Task ProfileDialog_ShouldSaveProfile()
-        {            
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
-
-            await ArrangeTestFlow()
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("はい", "プロファイルを保存します。")
-            .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfileWithNewName()
-        {            
-            // テスト用の変数
-            var name = "Ken";
-            var newName = "Kenichiro";
-            var age = "42";
-            
-            // テストの追加と実行
-            await ArrangeTestFlow()
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("名前を変更する", "名前を入力してください。")
-            .Test(newName, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{newName} 年齢:{age} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("はい", "プロファイルを保存します。")
-            .StartTestAsync();
-        }
-
-        [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfileWithNewAge()
         {
-            // テスト用の変数
-            var name = "Ken";
-            var age = "42";
-            var newAge = "43";
-
-            // テストの追加と実行
             await ArrangeTestFlow()
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("年齢を変更する", "年齢を入力してください。")
-            .Test(newAge, $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{newAge} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("はい", "プロファイルを保存します。")
+            .Send("foo")
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Profile.json")).ToString()
+                );
+            })
+            .Send(new Activity()
+            {
+                Value = new JObject
+                {
+                    {"name", "Ken" },
+                    {"email" , "kenakamu@microsoft.com"},
+                    {"phone" , "xxx-xxxx-xxxx"},
+                    {"birthday" , new DateTime(1976, 7, 21)},
+                    {"hasCat" , true},
+                    {"catNum" , "3"},
+                    {"catTypes", "キジトラ,サバトラ,ハチワレ" },
+                    {"playWithCat" , true}
+                }.ToString()
+            })
+            .AssertReply((activity) =>
+            {
+                Assert.AreEqual(
+                    (activity as Activity).Text,
+                    "プロファイルを保存します。"
+                );
+            })
             .StartTestAsync();
         }
 
-        [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfileWithoutAge()
-        {           
-            // テスト用の変数
-            var name = "Ken";
-            var age = 0;
-
-            // テストの追加と実行
-            await ArrangeTestFlow()
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("いいえ", $"次の情報で登録します。いいですか？{Environment.NewLine} 名前:{name} 年齢:{age} (1) はい、 (2) 名前を変更する、 または (3) 年齢を変更する")
-            .Test("はい", "プロファイルを保存します。")
-            .StartTestAsync();
-        }
-
 
         [TestMethod]
-        [DataRow("-1")]
-        [DataRow("130")]
-        [DataRow("fourty")]
-        public async Task ProfileDialog_ShouldAskRetryWhenAgeOutOfRange(string age)
+        [DataRow(1800)]
+        [DataRow(2020)]
+        public async Task ProfileDialog_ShouldAskRetryWhenAgeOutOfRange(int year)
         {
-            // テスト用の変数
-            var name = "Ken";
-            var numberRange = new NumberRange() { MinValue = 0, MaxValue = 120 };
-
             // テストの追加と実行
             await ArrangeTestFlow()
-            .Test("foo", "名前を入力してください。")
-            .Test(name, "年齢を聞いてもいいですか？ (1) はい または (2) いいえ")
-            .Test("はい", "年齢を入力してください。")
-            .Test(age, $"{numberRange.MinValue}-{numberRange.MaxValue} の数字で入力してください。")
+            .Send("foo")
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Profile.json")).ToString()
+                );
+            })
+            .Send(new Activity()
+            {
+                Value = new JObject
+                {
+                    {"name", "Ken" },
+                    {"email" , "kenakamu@microsoft.com"},
+                    {"phone" , "xxx-xxxx-xxxx"},
+                    {"birthday" , new DateTime(year, 7, 21)},
+                    {"hasCat" , true},
+                    {"catNum" , "3"},
+                    {"catTypes", "キジトラ,サバトラ,ハチワレ" },
+                    {"playWithCat" , true}
+                }.ToString()
+            }).AssertReply((activity) =>
+            {
+                var birthday = new DateTime(year, 7, 21);
+                var age = DateTime.Now.Year - birthday.Year;
+                if (DateTime.Now < birthday.AddYears(age))
+                    age--;
+
+                Assert.AreEqual(
+                    (activity as Activity).Text,
+                    $"年齢が{age}歳になります。ただしい誕生日を入れてください。"
+                );
+            })
             .StartTestAsync();
         }
     }

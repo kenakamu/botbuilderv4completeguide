@@ -1,16 +1,18 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
 {
     [TestClass]
     public class WeatherDialogUnitTest
-    {       
+    {
 
         private TestFlow ArrangeTestFlow()
         {
@@ -46,18 +48,65 @@ namespace myfirstbot.unittest
                 {
                     await dialogContext.BeginDialogAsync(nameof(WeatherDialog), null, cancellationToken);
                 }
+                else if (results.Status == DialogTurnStatus.Complete)
+                {
+                    await turnContext.SendActivityAsync("Done");
+                }
             });
+
         }
 
         [TestMethod]
-        [DataRow("今日")]
         [DataRow("明日")]
         [DataRow("明後日")]
-        public async Task WeatherDialog_ShouldReturnWeatherForcast(string day)
+        public async Task WeatherDialog_ShouldReturnChoice(string date)
         {
             await ArrangeTestFlow()
-            .Test("foo", "いつの天気を知りたいですか？ (1) 今日、 (2) 明日、 または (3) 明後日")
-            .Test(day, $"{day}の天気は晴れです")
+            .Send("foo")
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", "今日")).ToString()
+                );
+            })
+            .Send("他の日の天気")
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/WeatherDateChoice.json")).ToString()
+                );
+            })
+            .Send(date)
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", date)).ToString()
+                );
+            })
+            .Test("終了", "Done")
+            .StartTestAsync();
+        }
+
+        [TestMethod]
+        public async Task WeatherDialog_ShouldReturnChoiceAndComplete()
+        {
+            await ArrangeTestFlow()
+            .Send("foo")
+            .AssertReply((activity) =>
+            {
+                // アダプティブカードを比較
+                Assert.AreEqual(
+                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", "今日")).ToString()
+                );
+            })
+            .Test("終了", "Done")
             .StartTestAsync();
         }
     }

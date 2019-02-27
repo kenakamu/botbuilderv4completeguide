@@ -137,19 +137,19 @@ namespace myfirstbot.unittest
         public async Task MyBot_ShouldGoToWeatherDialog()
         {
             var arrange = ArrangeTest(false);
-           
+
             // テストの追加と実行
             await arrange.testFlow
                 .Send("天気を確認")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "choice");
+            // Activity とアダプターからコンテキストを作成
+            var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            // ダイアログコンテキストを取得
+            var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
+            var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
+                    Assert.AreEqual(dialogInstances[0].Id, "date");
                 })
                 .StartTestAsync();
         }
@@ -161,7 +161,15 @@ namespace myfirstbot.unittest
 
             // テストの追加と実行
             await arrange.testFlow
-                .Test("今日の天気を確認", "今日の天気は晴れです")
+                .Send("今日の天気を確認")
+                .AssertReply((activity) =>
+                {
+            // アダプティブカードを比較
+            Assert.AreEqual(
+                        JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
+                        JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", "今日")).ToString()
+                    );
+                })
                 .StartTestAsync();
         }
 
@@ -302,34 +310,34 @@ namespace myfirstbot.unittest
                 .Test("foo", $"ようこそ '{name}' さん！")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "choice");
-                })
+            //// Activity とアダプターからコンテキストを作成
+            //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            //// ダイアログコンテキストを取得
+            //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            //// 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
+            //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
+            //Assert.AreEqual(dialogInstances[0].Id, "choice");
+        })
                 .Send("天気を確認")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "choice");
-                })
+            //    // Activity とアダプターからコンテキストを作成
+            //    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            //    // ダイアログコンテキストを取得
+            //    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            //    // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
+            //    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
+            //    Assert.AreEqual(dialogInstances[0].Id, "choice");
+        })
                 .Test("キャンセル", "キャンセルします")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
+            // Activity とアダプターからコンテキストを作成
+            var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            // ダイアログコンテキストを取得
+            var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            // 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
+            var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
                 .StartTestAsync();
@@ -345,35 +353,35 @@ namespace myfirstbot.unittest
                 .Test("foo", $"ようこそ '{name}' さん！")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "choice");
-                })
+            //// Activity とアダプターからコンテキストを作成
+            //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            //// ダイアログコンテキストを取得
+            //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            //// 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
+            //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
+            //Assert.AreEqual(dialogInstances[0].Id, "choice");
+        })
                 .Send("天気を確認")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "choice");
-                })
+            //// Activity とアダプターからコンテキストを作成
+            //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            //// ダイアログコンテキストを取得
+            //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            //// 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
+            //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
+            //Assert.AreEqual(dialogInstances[0].Id, "choice");
+        })
                 .Send("プロファイルの変更")
                 .AssertReply((activity) =>
                 {
-                    // Activity とアダプターからコンテキストを作成
-                    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ダイアログコンテキストを取得
-                    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が ProfileDialog の name であることを確認。
-                    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(ProfileDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "name");
+            // Activity とアダプターからコンテキストを作成
+            var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+            // ダイアログコンテキストを取得
+            var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+            // 現在のダイアログスタックの一番上が ProfileDialog の name であることを確認。
+            var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(ProfileDialog)).First().State["dialogs"] as DialogState).DialogStack;
+                    Assert.AreEqual(dialogInstances[0].Id, "adaptive");
                 })
                 .StartTestAsync();
         }
