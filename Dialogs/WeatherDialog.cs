@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 public class WeatherDialog : ComponentDialog
 {
     // 既定で今日の天気を表示
-    private static string date = "今日";
+    private string date = "今日";
     public WeatherDialog() : base(nameof(WeatherDialog))
     {
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
@@ -25,7 +25,7 @@ public class WeatherDialog : ComponentDialog
         AddDialog(new TextPrompt("date"));
     }
 
-    private static async Task<DialogTurnResult> ShowWeatherAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> ShowWeatherAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {        
         // アダプティブカードの定義を JSON ファイルより読込み、対象日を変更
         var adaptiveCardJson = File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", date);
@@ -47,7 +47,7 @@ public class WeatherDialog : ComponentDialog
         cancellationToken: cancellationToken);
     }
 
-    private static async Task<DialogTurnResult> CheckUserInputAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> CheckUserInputAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         var input = stepContext.Result.ToString();
 
@@ -73,7 +73,7 @@ public class WeatherDialog : ComponentDialog
         cancellationToken: cancellationToken);
     }
 
-    private static async Task<DialogTurnResult> CheckDateAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> CheckDateAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // 結果を date に指定してダイアログを再利用
         date = stepContext.Result.ToString();

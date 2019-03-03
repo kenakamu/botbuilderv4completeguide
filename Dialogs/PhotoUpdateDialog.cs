@@ -28,13 +28,13 @@ public class PhotoUpdateDialog : ComponentDialog
         AddDialog((LoginDialog)serviceProvider.GetService(typeof(LoginDialog)));
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // 認証ダイアログはテキストがないと落ちるため、ダミーを設定
         stepContext.Context.Activity.Text = "dummy";
         return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);       
     }
-    private static async Task<DialogTurnResult> UpdatePhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> UpdatePhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
@@ -54,7 +54,7 @@ public class PhotoUpdateDialog : ComponentDialog
         return await stepContext.NextAsync(accessToken, cancellationToken);
     }
 
-    private static async Task<DialogTurnResult> GetPhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> GetPhotoAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // 前の処理よりトークンを取得
         var accessToken = (string)stepContext.Result;

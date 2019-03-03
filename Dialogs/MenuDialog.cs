@@ -38,7 +38,7 @@ public class MenuDialog : ComponentDialog
         AddDialog((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
     }
 
-    public static async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    public async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // Choice プロンプトでメニューを表示
         return await stepContext.PromptAsync(

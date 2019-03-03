@@ -23,11 +23,11 @@ public class ScheduleDialog : ComponentDialog
         AddDialog((LoginDialog)serviceProvider.GetService(typeof(LoginDialog)));
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         return await stepContext.BeginDialogAsync(nameof(LoginDialog), cancellationToken: cancellationToken);
     }
-    private static async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> GetScheduleAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var accessToken = (string)stepContext.Result;
