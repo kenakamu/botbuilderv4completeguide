@@ -2,6 +2,8 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -28,7 +30,6 @@ namespace myfirstbot.unittest
         {
             // アダプターを作成
             var adapter = new TestAdapter();
-            adapter.Use(new SetLocaleMiddleware(Culture.Japanese));
             // ストレージとしてモックのストレージを利用
             var mockStorage = new Mock<IStorage>();
             // User1用に返すデータを作成
@@ -79,11 +80,19 @@ namespace myfirstbot.unittest
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };
 
-            var msGraphService = new MSGraphService(null);
-            // テスト対象のダイアログをインスタンス化
-            var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new ProfileDialog(accessors));
-            dialogs.Add(new MenuDialog(msGraphService));
+            // IServiceProvider のモック
+            var serviceProvider = new Mock<IServiceProvider>();
+
+            // MyBot クラスで解決すべきサービスを登録
+            serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(ProfileDialog))).Returns(new ProfileDialog(accessors));
+            serviceProvider.Setup(x => x.GetService(typeof(SelectLanguageDialog))).Returns(new SelectLanguageDialog(accessors));
+            serviceProvider.Setup(x => x.GetService(typeof(WelcomeDialog))).Returns
+                (new WelcomeDialog(accessors, null, serviceProvider.Object));
+            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object));
+            serviceProvider.Setup(x => x.GetService(typeof(MenuDialog))).Returns(new MenuDialog(serviceProvider.Object));
+            serviceProvider.Setup(x => x.GetService(typeof(PhotoUpdateDialog))).Returns(new PhotoUpdateDialog(serviceProvider.Object));
 
             // IRecognizer のモック化
             var mockRecognizer = new Mock<IRecognizer>();
@@ -122,15 +131,17 @@ namespace myfirstbot.unittest
                     return Task.FromResult(recognizerResult);
                 });
             // テスト対象のクラスをインスタンス化
-            var bot = new MyBot(accessors, mockRecognizer.Object, msGraphService);
+            var bot = new MyBot(accessors, mockRecognizer.Object, serviceProvider.Object);
 
             // 差し替える必要があるものを差し替え
             var photoUpdateDialog = new DummyDialog(nameof(PhotoUpdateDialog));
             bot.ReplaceDialog(photoUpdateDialog);
 
+            // DialogSet を作成したクラスより Refactor
+            var dialogSet = (DialogSet)typeof(MyBot).GetField("dialogs", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(bot);
             // TestFlow の作成
             var testFlow = new TestFlow(adapter, bot.OnTurnAsync);
-            return (testFlow, adapter, dialogs);
+            return (testFlow, adapter, dialogSet);
         }
 
         [TestMethod]
@@ -185,7 +196,7 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldGoToProfileDialogWithConversationUpdateWithoutUserProfile()
+        public async Task MyBot_ShouldGoToSelectLanguageDialogWithConversationUpdateWithoutUserProfile()
         {
             var arrange = ArrangeTest(false);
 
@@ -207,9 +218,9 @@ namespace myfirstbot.unittest
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
                     // ダイアログコンテキストを取得
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // 現在のダイアログスタックの一番上が WelcomeDialog の checkStatus であることを確認。
+                    // 現在のダイアログスタックの一番上が SelectLanguageDialog であることを確認。
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WelcomeDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    Assert.AreEqual(dialogInstances[0].Id, "checkStatus");
+                    Assert.AreEqual(dialogInstances[0].Id, "SelectLanguageDialog");
                 })
                 .StartTestAsync();
         }

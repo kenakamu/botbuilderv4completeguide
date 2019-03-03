@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.AI.Luis;
 using Microsoft.Bot.Builder.Dialogs;
@@ -59,6 +61,9 @@ namespace myfirstbot
                 var conversationState = new ConversationState(dataStore);
                 options.State.Add(userState);
                 options.State.Add(conversationState);
+                options.Middleware.Add(new SetLanguageMiddleware(
+                    userState.CreateProperty<UserProfile>("UserProfile")
+                ));
             });
 
             // MSGraph 関連 を IoC に登録
@@ -97,6 +102,32 @@ namespace myfirstbot
 
                 return accessors;
             });
+
+            // リソースファイルが存在するフォルダの相対パス
+            services.AddLocalization(o => o.ResourcesPath = "Resources");
+            //　ローカライゼーションの設定
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("en-US"),
+                    new CultureInfo("ja-JP"),
+                };
+                // 既定とサポートされるカルチャーの設定
+                options.DefaultRequestCulture = new RequestCulture("ja-JP", "ja-JP");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
+
+            // ダイアログも IoC に登録
+            services.AddScoped<LoginDialog, LoginDialog>();
+            services.AddScoped<MenuDialog, MenuDialog>();
+            services.AddScoped<PhotoUpdateDialog, PhotoUpdateDialog>();
+            services.AddScoped<ProfileDialog, ProfileDialog>();
+            services.AddScoped<ScheduleDialog, ScheduleDialog>();
+            services.AddScoped<SelectLanguageDialog, SelectLanguageDialog>();
+            services.AddScoped<WeatherDialog, WeatherDialog>();
+            services.AddScoped<WelcomeDialog, WelcomeDialog>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

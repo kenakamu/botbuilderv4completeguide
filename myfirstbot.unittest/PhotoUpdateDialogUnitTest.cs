@@ -52,12 +52,19 @@ namespace myfirstbot.unittest
                 });
 
             var msGraphService = new MSGraphService(mockGraphSDK.Object);
+
+            // IServiceProvider のモック
+            var serviceProvider = new Mock<IServiceProvider>();
+
+            // PhotoUpdateDialog クラスで解決すべきサービスを登録
+            serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(MSGraphService))).Returns(new MSGraphService(mockGraphSDK.Object));
             
             // テスト対象のダイアログをインスタンス化
             var loginDialog = new LoginDialog();
             // OAuthPrompt をテスト用のプロンプトに差し替え
             loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
-            var photoUpdateDialog = new PhotoUpdateDialog(msGraphService);
+            var photoUpdateDialog = new PhotoUpdateDialog(serviceProvider.Object);
             // ログインダイアログを上記でつくったものに差し替え
             photoUpdateDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
@@ -66,7 +73,6 @@ namespace myfirstbot.unittest
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
-                .Use(new SetLocaleMiddleware(Culture.Japanese))
                 .Use(new AutoSaveStateMiddleware(userState, conversationState));
 
             // TestFlow の作成
@@ -85,7 +91,7 @@ namespace myfirstbot.unittest
 
         [TestMethod]
         public async Task PhotoUpdateDialogShouldUpdateAndReturnPicture()
-        {            
+        {
             await ArrangeTestFlow()
             .Send("foo")
             .AssertReply((activity) =>

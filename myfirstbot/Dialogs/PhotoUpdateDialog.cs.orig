@@ -10,13 +10,18 @@ using Microsoft.Bot.Schema;
 
 public class PhotoUpdateDialog : ComponentDialog
 {
-    private IServiceProvider serviceProvider;
+<<<<<<< HEAD:myfirstbot/Dialogs/PhotoUpdateDialog.cs
     private MSGraphService graphClient;
-
+    public PhotoUpdateDialog(MSGraphService graphClient) : base(nameof(PhotoUpdateDialog))
+    {
+        this.graphClient = graphClient;
+=======
+    private IServiceProvider serviceProvider;
     public PhotoUpdateDialog(IServiceProvider serviceProvider) : base(nameof(PhotoUpdateDialog))
     {
         this.serviceProvider = serviceProvider;
-        graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
+
+>>>>>>> article15:Dialogs/PhotoUpdateDialog.cs
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {

@@ -12,6 +12,12 @@
       <Link>%(RecursiveDir)\AdaptiveJsons\%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\myfirstbot\Resources\*.resx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(RecursiveDir)\Resources\%(FileName)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.0" />

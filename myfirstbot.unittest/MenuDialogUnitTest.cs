@@ -4,6 +4,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,9 +30,18 @@ namespace myfirstbot.unittest
                 // UserProfile を作成
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };
+
+            // IServiceProvider のモック
+            var serviceProvider = new Mock<IServiceProvider>();
+
+            // MenuDialog クラスで解決すべきサービスを登録
+            serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object));
+
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new MenuDialog(new MSGraphService(null)));
+            dialogs.Add(new MenuDialog(serviceProvider.Object));
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()

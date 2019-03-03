@@ -18,8 +18,13 @@ public class MenuDialog : ComponentDialog
 
     // ChoiceFactory で選択肢に設定する IList<Choice> を作成
     private static IList<Choice> choices = ChoiceFactory.ToChoices(menus.Select(x => x.Key).ToList());
+<<<<<<< HEAD:myfirstbot/Dialogs/MenuDialog.cs
+
+    public MenuDialog(MSGraphService graphClient) : base(nameof(MenuDialog))
+=======
     private IServiceProvider serviceProvider;
     public MenuDialog(IServiceProvider serviceProvider) : base(nameof(MenuDialog))
+>>>>>>> article15:Dialogs/MenuDialog.cs
     {
         this.serviceProvider = serviceProvider;
 
@@ -34,8 +39,13 @@ public class MenuDialog : ComponentDialog
         // ウォーターフォールダイアログと各種プロンプトを追加
         AddDialog(new WaterfallDialog("menu", waterfallSteps));
         AddDialog(new ChoicePrompt("choice"));
+<<<<<<< HEAD:myfirstbot/Dialogs/MenuDialog.cs
+        AddDialog(new WeatherDialog());
+        AddDialog(new ScheduleDialog(graphClient));
+=======
         AddDialog((WeatherDialog)serviceProvider.GetService(typeof(WeatherDialog)));
         AddDialog((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
+>>>>>>> article15:Dialogs/MenuDialog.cs
     }
 
     public async Task<DialogTurnResult> ShowMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

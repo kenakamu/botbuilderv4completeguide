@@ -16,14 +16,15 @@ public class MyBot : IBot
 <<<<<<< HEAD:myfirstbot/MyBot.cs
     public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer, MSGraphService graphClient)
 =======
-    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer)
->>>>>>> article14:MyBot.cs
+    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer, IServiceProvider serviceProvider)
+>>>>>>> article15:MyBot.cs
     {
         this.accessors = accessors;
         this.luisRecognizer = luisRecognizer;
         this.dialogs = new DialogSet(accessors.ConversationDialogState);
 
         // コンポーネントダイアログを追加
+<<<<<<< HEAD:myfirstbot/MyBot.cs
         // dialogs.Add(new ProfileDialog(accessors));
         dialogs.Add(new WelcomeDialog(accessors));
         dialogs.Add(new ProfileDialog(accessors));
@@ -31,6 +32,14 @@ public class MyBot : IBot
         dialogs.Add(new WeatherDialog());
         dialogs.Add(new ScheduleDialog(graphClient));
         dialogs.Add(new PhotoUpdateDialog(graphClient));
+=======
+        dialogs.Add((WelcomeDialog)serviceProvider.GetService(typeof(WelcomeDialog)));
+        dialogs.Add((ProfileDialog)serviceProvider.GetService(typeof(ProfileDialog)));
+        dialogs.Add((MenuDialog)serviceProvider.GetService(typeof(MenuDialog)));
+        dialogs.Add((WeatherDialog)serviceProvider.GetService(typeof(WeatherDialog)));
+        dialogs.Add((ScheduleDialog)serviceProvider.GetService(typeof(ScheduleDialog)));
+        dialogs.Add((PhotoUpdateDialog)serviceProvider.GetService(typeof(PhotoUpdateDialog)));
+>>>>>>> article15:MyBot.cs
     }
 
     public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))

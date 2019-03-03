@@ -38,7 +38,6 @@ namespace myfirstbot.unittest
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
-                .Use(new SetLocaleMiddleware(Culture.Japanese))
                 .Use(new AutoSaveStateMiddleware(userState, conversationState));
 
             // TestFlow の作成

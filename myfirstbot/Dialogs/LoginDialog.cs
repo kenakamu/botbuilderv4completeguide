@@ -28,11 +28,11 @@ public class LoginDialog : ComponentDialog
                 }));
     }
 
-    private static async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> LoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         return await stepContext.BeginDialogAsync("login", cancellationToken: cancellationToken);
     }
-    private static async Task<DialogTurnResult> CompleteLoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> CompleteLoginAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         // ログインの結果よりトークンを取得
         var tokenResponse = (TokenResponse)stepContext.Result;

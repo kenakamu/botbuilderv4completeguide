@@ -6,14 +6,18 @@ using Microsoft.Bot.Schema;
 
 public class ScheduleDialog : ComponentDialog
 {
-    private IServiceProvider serviceProvider;
+<<<<<<< HEAD:myfirstbot/Dialogs/ScheduleDialog.cs
     private MSGraphService graphClient;
-
+    public ScheduleDialog(MSGraphService graphClient) : base(nameof(ScheduleDialog))
+    {
+        this.graphClient = graphClient;
+=======
+    private IServiceProvider serviceProvider;
     public ScheduleDialog(IServiceProvider serviceProvider) : base(nameof(ScheduleDialog))
     {
         this.serviceProvider = serviceProvider;
-        graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
 
+>>>>>>> article15:Dialogs/ScheduleDialog.cs
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
