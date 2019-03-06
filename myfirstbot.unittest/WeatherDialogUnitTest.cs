@@ -18,7 +18,6 @@ namespace myfirstbot.unittest
     [TestClass]
     public class WeatherDialogUnitTest
     {
-
         private (TestFlow testFlow, StringLocalizer<WeatherDialog> localizer) ArrangeTest(string language)
         {
             var accessors = AccessorsFactory.GetAccessors(language);
@@ -59,8 +58,6 @@ namespace myfirstbot.unittest
         [DataRow("ja-JP","明後日")]
         [DataRow("en-US","tomorrow")]
         [DataRow("en-US","day after tomorrow")]
-        //[DataRow("明日")]
-        //[DataRow("明後日")]
         public async Task WeatherDialog_ShouldReturnChoice(string language, string date)
         {
             // 言語を指定してテストを作成
