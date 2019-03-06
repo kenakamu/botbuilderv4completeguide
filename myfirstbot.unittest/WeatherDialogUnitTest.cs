@@ -2,10 +2,15 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using myfirstbot.unittest.Helpers;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
@@ -14,30 +19,23 @@ namespace myfirstbot.unittest
     public class WeatherDialogUnitTest
     {
 
-        private TestFlow ArrangeTestFlow()
+        private (TestFlow testFlow, StringLocalizer<WeatherDialog> localizer) ArrangeTest(string language)
         {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
+            var accessors = AccessorsFactory.GetAccessors(language);
+
+            // リソースを利用するため StringLocalizer を作成
+            var localizer = StringLocalizerFactory.GetStringLocalizer<WeatherDialog>();
+
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new WeatherDialog());
+            dialogs.Add(new WeatherDialog(accessors, localizer));
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
-
+                .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
+            
             // TestFlow の作成
-            return new TestFlow(adapter, async (turnContext, cancellationToken) =>
+            var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
                 // ダイアログに必要なコードだけ追加
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
@@ -53,21 +51,31 @@ namespace myfirstbot.unittest
                 }
             });
 
+            return (testFlow, localizer);
         }
 
         [TestMethod]
-        [DataRow("明日")]
-        [DataRow("明後日")]
-        public async Task WeatherDialog_ShouldReturnChoice(string date)
+        [DataRow("ja-JP","明日")]
+        [DataRow("ja-JP","明後日")]
+        [DataRow("en-US","tomorrow")]
+        [DataRow("en-US","day after tomorrow")]
+        //[DataRow("明日")]
+        //[DataRow("明後日")]
+        public async Task WeatherDialog_ShouldReturnChoice(string language, string date)
         {
-            await ArrangeTestFlow()
+            // 言語を指定してテストを作成
+            var arrange = ArrangeTest(language);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+
+            await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
                 // アダプティブカードを比較
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", "今日")).ToString()
+                    JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", arrange.localizer["today"])).ToString()
                 );
             })
             .Send("他の日の天気")
@@ -76,7 +84,7 @@ namespace myfirstbot.unittest
                 // アダプティブカードを比較
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/WeatherDateChoice.json")).ToString()
+                    JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/WeatherDateChoice.json")).ToString()
                 );
             })
             .Send(date)
@@ -85,27 +93,34 @@ namespace myfirstbot.unittest
                 // アダプティブカードを比較
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", date)).ToString()
+                    JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", date)).ToString()
                 );
             })
-            .Test("終了", "Done")
+            .Test(arrange.localizer["end"], "Done")
             .StartTestAsync();
         }
 
         [TestMethod]
-        public async Task WeatherDialog_ShouldReturnChoiceAndComplete()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task WeatherDialog_ShouldReturnChoiceAndComplete(string language)
         {
-            await ArrangeTestFlow()
+            // 言語を指定してテストを作成
+            var arrange = ArrangeTest(language);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+
+            await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
                 // アダプティブカードを比較
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Weather.json").Replace("{0}", "今日")).ToString()
+                    JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", arrange.localizer["today"])).ToString()
                 );
             })
-            .Test("終了", "Done")
+            .Test(arrange.localizer["end"], "Done")
             .StartTestAsync();
         }
     }

@@ -2,14 +2,16 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
-using Microsoft.Recognizers.Text;
+using Microsoft.Extensions.Localization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
+using Moq;
+using myfirstbot.unittest.Helpers;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
@@ -18,30 +20,23 @@ namespace myfirstbot.unittest
     public class ProfileDialogUnitTest
     {
 
-        private TestFlow ArrangeTestFlow()
+        private (TestFlow testFlow, StringLocalizer<ProfileDialog> localizer) ArrangeTest(string language)
         {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
+            var accessors = AccessorsFactory.GetAccessors(language);
+
+            // リソースを利用するため StringLocalizer を作成
+            var localizer = StringLocalizerFactory.GetStringLocalizer<ProfileDialog>();
+
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
-            dialogs.Add(new ProfileDialog(accessors));
+            dialogs.Add(new ProfileDialog(accessors, localizer));
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
+                .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
             // TestFlow の作成
-            return new TestFlow(adapter, async (turnContext, cancellationToken) =>
+            var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
                 // ダイアログに必要なコードだけ追加
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
@@ -52,19 +47,28 @@ namespace myfirstbot.unittest
                     await dialogContext.BeginDialogAsync(nameof(ProfileDialog), null, cancellationToken);
                 }
             });
+
+            return (testFlow, localizer);
         }
 
         [TestMethod]
-        public async Task ProfileDialog_ShouldSaveProfile()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task ProfileDialog_ShouldSaveProfile(string language)
         {
-            await ArrangeTestFlow()
+            // 言語を指定してテストを作成
+            var arrange = ArrangeTest(language);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+
+            await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
                 // アダプティブカードを比較
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Profile.json")).ToString()
+                    JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Profile.json")).ToString()
                 );
             })
             .Send(new Activity()
@@ -83,55 +87,7 @@ namespace myfirstbot.unittest
             })
             .AssertReply((activity) =>
             {
-                Assert.AreEqual(
-                    (activity as Activity).Text,
-                    "プロファイルを保存します。"
-                );
-            })
-            .StartTestAsync();
-        }
-
-
-        [TestMethod]
-        [DataRow(1800)]
-        [DataRow(2020)]
-        public async Task ProfileDialog_ShouldAskRetryWhenAgeOutOfRange(int year)
-        {
-            // テストの追加と実行
-            await ArrangeTestFlow()
-            .Send("foo")
-            .AssertReply((activity) =>
-            {
-                // アダプティブカードを比較
-                Assert.AreEqual(
-                    JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
-                    JObject.Parse(File.ReadAllText("./AdaptiveJsons/Profile.json")).ToString()
-                );
-            })
-            .Send(new Activity()
-            {
-                Value = new JObject
-                {
-                    {"name", "Ken" },
-                    {"email" , "kenakamu@microsoft.com"},
-                    {"phone" , "xxx-xxxx-xxxx"},
-                    {"birthday" , new DateTime(year, 7, 21)},
-                    {"hasCat" , true},
-                    {"catNum" , "3"},
-                    {"catTypes", "キジトラ,サバトラ,ハチワレ" },
-                    {"playWithCat" , true}
-                }.ToString()
-            }).AssertReply((activity) =>
-            {
-                var birthday = new DateTime(year, 7, 21);
-                var age = DateTime.Now.Year - birthday.Year;
-                if (DateTime.Now < birthday.AddYears(age))
-                    age--;
-
-                Assert.AreEqual(
-                    (activity as Activity).Text,
-                    $"年齢が{age}歳になります。ただしい誕生日を入れてください。"
-                );
+                Assert.AreEqual((activity as Activity).Text, arrange.localizer["save"]);
             })
             .StartTestAsync();
         }

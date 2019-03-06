@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\myfirstbot\AdaptiveJsons\*.json">
+    <Content Include="..\myfirstbot\AdaptiveJsons\*\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>%(RecursiveDir)\AdaptiveJsons\%(FileName)%(Extension)</Link>
+      <Link>AdaptiveJsons\%(RecursiveDir)\%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\myfirstbot\Resources\*.resx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>%(RecursiveDir)\Resources\%(FileName)%(Extension)</Link>
+      <Link>Resources\%(FileName)%(Extension)</Link>
     </Content>
   </ItemGroup>
   

@@ -1,13 +1,15 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Extensions.Localization;
 using Microsoft.Graph;
-using Microsoft.Recognizers.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using myfirstbot.unittest.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace myfirstbot.unittest
@@ -18,20 +20,12 @@ namespace myfirstbot.unittest
         // ダミーの予定用の時刻
         DateTime datetime = DateTime.Now;
 
-        private TestFlow ArrangeTestFlow()
+        private (TestFlow testFlow, StringLocalizer<ScheduleDialog> localizer) ArrangeTest(string language)
         {
-            // ストレージとしてインメモリを利用
-            IStorage dataStore = new MemoryStorage();
-            // それぞれのステートを作成
-            var conversationState = new ConversationState(dataStore);
-            var userState = new UserState(dataStore);
-            var accessors = new MyStateAccessors(userState, conversationState)
-            {
-                // DialogState を ConversationState のプロパティとして設定
-                ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile を作成
-                UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
-            };
+            var accessors = AccessorsFactory.GetAccessors(language);
+
+            // リソースを利用するため StringLocalizer を作成
+            var localizer = StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>();
 
             // Microsoft Graph 系のモック
             var mockGraphSDK = new Mock<IGraphServiceClient>();
@@ -59,14 +53,14 @@ namespace myfirstbot.unittest
             var serviceProvider = new Mock<IServiceProvider>();
 
             // ScheduleDialog クラスで解決すべきサービスを登録
-            serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog());
+            serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MSGraphService))).Returns(new MSGraphService(mockGraphSDK.Object));
 
             // テスト対象のダイアログをインスタンス化
-            var loginDialog = new LoginDialog();
+            var loginDialog = new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
             // OAuthPrompt をテスト用のプロンプトに差し替え
             loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
-            var scheduleDialog = new ScheduleDialog(serviceProvider.Object);
+            var scheduleDialog = new ScheduleDialog(serviceProvider.Object, localizer);
             // ログインダイアログを上記でつくったものに差し替え
             scheduleDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
@@ -75,10 +69,10 @@ namespace myfirstbot.unittest
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
-                .Use(new AutoSaveStateMiddleware(userState, conversationState));
+                .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
             // TestFlow の作成
-            return new TestFlow(adapter, async (turnContext, cancellationToken) =>
+            var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
                 // ダイアログに必要なコードだけ追加
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
@@ -89,12 +83,21 @@ namespace myfirstbot.unittest
                     await dialogContext.BeginDialogAsync(nameof(ScheduleDialog), null, cancellationToken);
                 }
             });
+
+            return (testFlow, localizer);
         }
 
         [TestMethod]
-        public async Task ScheduleDialog_ShouldReturnEvents()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task ScheduleDialog_ShouldReturnEvents(string language)
         {
-            await ArrangeTestFlow()
+            // 言語を指定してテストを作成
+            var arrange = ArrangeTest(language);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+
+            await arrange.testFlow
             .Send("foo")
             .AssertReply($"{datetime.ToString("HH:mm")}-{datetime.AddMinutes(30).ToString("HH:mm")} : Dummy 1")
             .AssertReply($"{datetime.AddMinutes(60).ToString("HH:mm")}-{datetime.AddMinutes(90).ToString("HH:mm")} : Dummy 2")

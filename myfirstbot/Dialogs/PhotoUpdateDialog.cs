@@ -11,11 +11,13 @@ public class PhotoUpdateDialog : ComponentDialog
 {
     private IServiceProvider serviceProvider;
     private IStringLocalizer<PhotoUpdateDialog> localizer;
+    private MSGraphService graphClient;
 
     public PhotoUpdateDialog(IServiceProvider serviceProvider, IStringLocalizer<PhotoUpdateDialog> localizer) : base(nameof(PhotoUpdateDialog))
     {
         this.serviceProvider = serviceProvider;
         this.localizer = localizer;
+        this.graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
 
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]

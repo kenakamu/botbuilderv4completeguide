@@ -8,10 +8,13 @@ using Microsoft.Extensions.Localization;
 public class ScheduleDialog : ComponentDialog
 {
     private IStringLocalizer<ScheduleDialog> localizer;
+    private MSGraphService graphClient;
 
     public ScheduleDialog(IServiceProvider serviceProvider, IStringLocalizer<ScheduleDialog> localizer) : base(nameof(ScheduleDialog))
     {
         this.localizer = localizer;
+        this.graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
