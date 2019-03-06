@@ -1,22 +1,22 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 
 public class PhotoUpdateDialog : ComponentDialog
 {
     private IServiceProvider serviceProvider;
-    private MSGraphService graphClient;
+    private IStringLocalizer<PhotoUpdateDialog> localizer;
 
-    public PhotoUpdateDialog(IServiceProvider serviceProvider) : base(nameof(PhotoUpdateDialog))
+    public PhotoUpdateDialog(IServiceProvider serviceProvider, IStringLocalizer<PhotoUpdateDialog> localizer) : base(nameof(PhotoUpdateDialog))
     {
         this.serviceProvider = serviceProvider;
-        graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
+        this.localizer = localizer;
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -51,7 +51,7 @@ public class PhotoUpdateDialog : ComponentDialog
             await graphClient.UpdatePhotoAsync(image);
         }
         else
-            await stepContext.Context.SendActivityAsync($"サインインに失敗しました。", cancellationToken: cancellationToken);
+            await stepContext.Context.SendActivityAsync(localizer["failed"], cancellationToken: cancellationToken);
 
         return await stepContext.NextAsync(accessToken, cancellationToken);
     }
@@ -86,7 +86,7 @@ public class PhotoUpdateDialog : ComponentDialog
             await stepContext.Context.SendActivityAsync(reply, cancellationToken);
         }
         else
-            await stepContext.Context.SendActivityAsync($"サインインに失敗しました。", cancellationToken: cancellationToken);
+            await stepContext.Context.SendActivityAsync(localizer["failed"], cancellationToken: cancellationToken);
 
         return await stepContext.EndDialogAsync(true, cancellationToken);
     }

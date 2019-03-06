@@ -1,0 +1,182 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": 2,
+                    "items": [   
+                        {
+                            "type": "TextBlock",
+                            "text": "Register Profile",
+                            "weight": "bolder",
+                            "size": "medium"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Tell me more about yourself.",
+                            "isSubtle": true,
+                            "wrap": true
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Name",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "name",
+                            "placeholder": "Fullname",
+                            "style": "text"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Birthday",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Date",
+                            "id": "birthday"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Email Address",
+                            "wrap": true
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "email",
+                            "placeholder": "youremail@example.com",
+                            "style": "email"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Tel"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "phone",
+                            "placeholder": "(xx)-xxxx-xxxx",
+                            "style": "tel"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Do you have cat(s)?"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "hasCat",
+                            "style": "expanded",
+                            "value":"true",
+                            "choices": [
+                                {
+                                    "title": "Yes",
+                                    "value": "true"
+                                },
+                                {
+                                    "title": "No",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "What types of cat(s) do you have?"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "catTypes",
+                            "isMultiSelect": true,
+                            "choices": [
+                                {
+                                    "title": "silver tabby",
+                                    "value": "silver tabby"
+                                },
+                                {
+                                    "title": "brown tabby",
+                                    "value": "brown tabby"
+                                },
+                                {
+                                    "title": "red tabby",
+                                    "value": "red tabby"
+                                },
+                                {
+                                    "title": "Other",
+                                    "value": "Other"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "How many cats do you have?"
+                        },
+                        {
+                            "type": "Input.ChoiceSet",
+                            "id": "catNum",
+                            "style": "compact",
+                            "value": "1",
+                            "choices": [
+                                {
+                                    "title": "1",
+                                    "value": "1"
+                                },
+                                {
+                                    "title": "2",
+                                    "value": "2"
+                                },
+                                {
+                                    "title": "3",
+                                    "value": "3"
+                                },
+                                {
+                                    "title": "4",
+                                    "value": "4"
+                                },
+                                {
+                                    "title": "5",
+                                    "value": "5"
+                                },
+                                {
+                                    "title": "More than 6",
+                                    "value": "6+"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Do you play with cat(s) everyday?"
+                        },
+                        {
+                            "type": "Input.Toggle",
+                            "title": "Yes I do.",
+                            "valueOn": "true",
+                            "valueOff": "false",
+                            "id": "playWithCat"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": 1,
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Pumiforme.JPG/1280px-Pumiforme.JPG",
+                            "size": "auto"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Register"
+        }
+    ]
+}

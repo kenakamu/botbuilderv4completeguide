@@ -1,0 +1,87 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Tokyo weather for {0}",
+            "size": "large",
+            "isSubtle": true
+        },
+        {
+            "type": "TextBlock",
+            "text": "Sunny and cloudy",
+            "spacing": "none"
+        },
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "http://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png",
+                            "size": "small"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "19",
+                            "size": "extraLarge",
+                            "spacing": "none"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "℃",
+                            "weight": "bolder",
+                            "spacing": "small"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "High 19",
+                            "horizontalAlignment": "left"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Low 12",
+                            "horizontalAlignment": "left",
+                            "spacing": "none"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Check other day",
+            "data": "Check other day"
+        },
+        {
+            "type": "Action.Submit",
+            "title": "Finish",
+            "data":  "end"
+        }
+    ]
+}

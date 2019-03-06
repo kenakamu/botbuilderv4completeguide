@@ -3,21 +3,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 
 public class ScheduleDialog : ComponentDialog
 {
 <<<<<<< HEAD:myfirstbot/Dialogs/ScheduleDialog.cs
-    private MSGraphService graphClient;
-    public ScheduleDialog(MSGraphService graphClient) : base(nameof(ScheduleDialog))
-    {
-        this.graphClient = graphClient;
-=======
     private IServiceProvider serviceProvider;
+    private MSGraphService graphClient;
+
     public ScheduleDialog(IServiceProvider serviceProvider) : base(nameof(ScheduleDialog))
     {
         this.serviceProvider = serviceProvider;
+        graphClient = (MSGraphService)serviceProvider.GetService(typeof(MSGraphService));
+=======
+    private IStringLocalizer<ScheduleDialog> localizer;
+>>>>>>> article16:Dialogs/ScheduleDialog.cs
 
->>>>>>> article15:Dialogs/ScheduleDialog.cs
+    public ScheduleDialog(IServiceProvider serviceProvider, IStringLocalizer<ScheduleDialog> localizer) : base(nameof(ScheduleDialog))
+    {
+        this.localizer = localizer;
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -49,7 +53,7 @@ public class ScheduleDialog : ComponentDialog
             });
         }
         else
-            await stepContext.Context.SendActivityAsync($"サインインに失敗しました。", cancellationToken: cancellationToken);
+            await stepContext.Context.SendActivityAsync(localizer["failed"], cancellationToken: cancellationToken);
 
         return await stepContext.EndDialogAsync(true, cancellationToken);
     }
