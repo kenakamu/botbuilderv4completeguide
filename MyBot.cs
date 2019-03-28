@@ -15,14 +15,14 @@ using Microsoft.Extensions.Localization;
 public class MyBot : IBot
 {
     private MyStateAccessors accessors;
-    private LuisRecognizer luisRecognizer;
+    private IRecognizer luisRecognizer;
     private DialogSet dialogs;
     private IStringLocalizer<MyBot> localizer;
     private ITranslateClient translator;
     private IServiceProvider serviceProvider;
 
     // DI で MyStateAccessors および luisRecognizer は自動解決
-    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer,
+    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer,
         IStringLocalizer<MyBot> localizer, IServiceProvider serviceProvider,
         ITranslateClient translator)
     {
