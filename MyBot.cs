@@ -49,7 +49,7 @@ public class MyBot : IBot
         return localizer.GetAllStrings().Select(x => x.Value).ToList();
     }
 
-    private async Task ContinueDialog(ITurnContext turnContext, DialogContext dialogContext, 
+    private async Task ContinueDialog(ITurnContext turnContext, DialogContext dialogContext,
         UserProfile userProfile, CancellationToken cancellationToken)
     {
         // まず ContinueDialogAsync を実行して既存のダイアログがあれば継続実行。
@@ -88,11 +88,12 @@ public class MyBot : IBot
                 await dialogContext.ContinueDialogAsync(cancellationToken);
             }
             else
-            {                
+            {
                 // 現在のダイアログのリソースを取得
-                var activeDialog = dialogContext.ActiveDialog.Id;
-                List<string> strings = (List<string>)
-                    typeof(MyBot).GetMethod("GetResourceStrings").MakeGenericMethod(new Type[] { Type.GetType(activeDialog) }).Invoke(this, null);
+                List<string> strings = dialogContext.ActiveDialog == null ? new List<string>() :
+                (List<string>)typeof(MyBot).GetMethod("GetResourceStrings").MakeGenericMethod(
+                    new Type[] { Type.GetType( dialogContext.ActiveDialog.Id) }
+                ).Invoke(this, null);
 
                 // リソースのテキストだった場合そのままダイアログを実行
                 if (strings.Where(x => x == turnContext.Activity.Text).FirstOrDefault() != null)
