@@ -11,20 +11,19 @@ using Newtonsoft.Json;
 public class WeatherDialog : ComponentDialog
 {
     // 既定で今日の天気を表示
-<<<<<<< HEAD:myfirstbot/Dialogs/WeatherDialog.cs
-    private string date = "今日";
-    public WeatherDialog() : base(nameof(WeatherDialog))
-=======
     private string date;
     private MyStateAccessors accessors;
     private IStringLocalizer<WeatherDialog> localizer;
 
     public WeatherDialog(MyStateAccessors accessors, IStringLocalizer<WeatherDialog> localizer) : base(nameof(WeatherDialog))
->>>>>>> article16:Dialogs/WeatherDialog.cs
     {
         this.accessors = accessors;
         this.localizer = localizer;
+<<<<<<< HEAD:myfirstbot/Dialogs/WeatherDialog.cs
         
+=======
+
+>>>>>>> article17:Dialogs/WeatherDialog.cs
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -39,9 +38,6 @@ public class WeatherDialog : ComponentDialog
     }
 
     private async Task<DialogTurnResult> ShowWeatherAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
-<<<<<<< HEAD:myfirstbot/Dialogs/WeatherDialog.cs
-    {        
-=======
     {
         // 日付がない場合は今日を指定
         if(string.IsNullOrEmpty(date))
@@ -49,7 +45,6 @@ public class WeatherDialog : ComponentDialog
 
         var userProfile = await accessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
 
->>>>>>> article16:Dialogs/WeatherDialog.cs
         // アダプティブカードの定義を JSON ファイルより読込み、対象日を変更
         var adaptiveCardJson = File.ReadAllText($"./AdaptiveJsons/{userProfile.Language}/Weather.json").Replace("{0}", date);
         var adaptiveCardAttachment = new Attachment()

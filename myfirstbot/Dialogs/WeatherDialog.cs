@@ -19,7 +19,7 @@ public class WeatherDialog : ComponentDialog
     {
         this.accessors = accessors;
         this.localizer = localizer;
-        
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {

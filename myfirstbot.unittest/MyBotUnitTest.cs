@@ -1,7 +1,10 @@
+using CognitiveServices.Translator;
+using CognitiveServices.Translator.Translate;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Adapters;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Localization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using myfirstbot.unittest.Helpers;
@@ -22,13 +25,15 @@ namespace myfirstbot.unittest
         // テスト用変数
         string name = "Ken";
 
-        private (TestFlow testFlow, BotAdapter adapter, DialogSet dialogs) ArrangeTest(bool returnUserProfile)
+        private (TestFlow testFlow, BotAdapter adapter, DialogSet dialogs) ArrangeTest(string language, bool returnUserProfile)
         {
+            // 言語を指定してアクセサーを作成
+            var accessors = AccessorsFactory.GetAccessors(language, returnUserProfile);
+
             // アダプターを作成
-            var adapter = new TestAdapter();
-
-            var accessors = AccessorsFactory.GetAccessors("ja-JP", returnUserProfile);
-
+            var adapter = new TestAdapter()
+                .Use(new SetLanguageMiddleware(accessors.UserProfile));
+       
             // IServiceProvider のモック
             var serviceProvider = new Mock<IServiceProvider>();
 
@@ -42,7 +47,14 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MenuDialog))).Returns(new MenuDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<MenuDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(PhotoUpdateDialog))).Returns(new PhotoUpdateDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<PhotoUpdateDialog>()));
-
+            // 各ダイアログの StringLocalizer を追加
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<LoginDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<WeatherDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<WeatherDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<ProfileDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<ProfileDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<SelectLanguageDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<SelectLanguageDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<WelcomeDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<WelcomeDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<ScheduleDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>());
+            serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<MenuDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<MenuDialog>());
 
             // IRecognizer のモック化
             var mockRecognizer = new Mock<IRecognizer>();
@@ -80,8 +92,42 @@ namespace myfirstbot.unittest
                     }
                     return Task.FromResult(recognizerResult);
                 });
+            
+            // 翻訳サービスのモック化
+            var mockTranslateClient = new Mock<ITranslateClient>();
+            mockTranslateClient.Setup(l => l.TranslateAsync(It.IsAny<RequestContent>(), It.IsAny<RequestParameter>()))
+                .Returns((RequestContent requestContent, RequestParameter requestParameter) =>
+                {
+                    var response = new List<ResponseBody>();
+                    switch (requestContent.Text)
+                    {
+                        case "Cancel":
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "キャンセル" } } });
+                            break;
+                        case "Check weather":
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "天気を確認" } } });
+                            break;
+                        case "Check today's weather":
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "今日の天気を確認" } } });
+                            break;
+                        case "Help":
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ヘルプ" } } });
+                            break;
+                        case "Update profile":
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "プロファイルの変更" } } });
+                            break;
+                        default:
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "foo" } } });
+                            break;
+                    }
+                    return Task.FromResult(response as IList<ResponseBody>);
+                });
+
+            // MyBot でリソースを利用するため StringLocalizer を作成
+            var localizer = StringLocalizerFactory.GetStringLocalizer<MyBot>();
+
             // テスト対象のクラスをインスタンス化
-            var bot = new MyBot(accessors, mockRecognizer.Object, serviceProvider.Object);
+            var bot = new MyBot(accessors, mockRecognizer.Object, localizer, serviceProvider.Object, mockTranslateClient.Object);
 
             // 差し替える必要があるものを差し替え
             var photoUpdateDialog = new DummyDialog(nameof(PhotoUpdateDialog));
@@ -95,13 +141,15 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldGoToWeatherDialog()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_ShouldGoToWeatherDialog(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
 
             // テストの追加と実行
             await arrange.testFlow
-                .Send("天気を確認")
+                .Send(language == "ja-JP" ? "天気を確認" : "Check weather")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
@@ -114,22 +162,24 @@ namespace myfirstbot.unittest
                 })
                 .StartTestAsync();
         }
-       
+
         [TestMethod]
-        public async Task MyBot_ShouldGoToHelpDialog()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_ShouldGoToHelpDialog(string language)
         {
-            var arrange = ArrangeTest(false);
+            var arrange = ArrangeTest(language, true);
 
             // テストの追加と実行
             await arrange.testFlow
-                .Test("ヘルプ", "天気と予定が確認できます。")
+                .Test(language == "ja-JP" ? "ヘルプ":"Help", language == "ja-JP" ? "天気と予定が確認できます。": "You can check weather and your schedule")
                 .StartTestAsync();
         }
 
         [TestMethod]
         public async Task MyBot_ShouldGoToSelectLanguageDialogWithConversationUpdateWithoutUserProfile()
         {
-            var arrange = ArrangeTest(false);
+            var arrange = ArrangeTest("ja-JP", false);
 
             var conversationUpdateActivity = new Activity(ActivityTypes.ConversationUpdate)
             {
@@ -157,9 +207,11 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldGoToMenuDialogWithConversationUpdateWithUserProfile()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_ShouldGoToMenuDialogWithConversationUpdateWithUserProfile(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
 
             var conversationUpdateActivity = new Activity(ActivityTypes.ConversationUpdate)
             {
@@ -173,7 +225,7 @@ namespace myfirstbot.unittest
             // テストの追加と実行
             await arrange.testFlow
                 .Send(conversationUpdateActivity)
-                .AssertReply($"ようこそ '{name}' さん！")
+                .AssertReply(language == "ja-JP" ? $"ようこそ '{name}' さん！": $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
@@ -188,13 +240,15 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldWelcomeAndMenuDialogWithMessage()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_ShouldWelcomeAndMenuDialogWithMessage(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
 
             // テストの追加と実行
             await arrange.testFlow
-                .Test("foo", $"ようこそ '{name}' さん！")
+                .Test("foo", language == "ja-JP" ? $"ようこそ '{name}' さん！" : $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
@@ -209,9 +263,11 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_ShouldGoToPhotoUpdateDialog()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_ShouldGoToPhotoUpdateDialog(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
             var attachmentActivity = new Activity(ActivityTypes.Message)
             {
                 Id = "test",
@@ -243,35 +299,23 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_GlobalCommand_ShouldCancelAllDialog()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_GlobalCommand_ShouldCancelAllDialog(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
 
             // テストの追加と実行
             await arrange.testFlow
-                .Test("foo", $"ようこそ '{name}' さん！")
+                .Test("foo", language == "ja-JP" ? $"ようこそ '{name}' さん！" : $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
-                    //// Activity とアダプターからコンテキストを作成
-                    //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    //// ダイアログコンテキストを取得
-                    //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    //// 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
-                    //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    //Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
-                .Send("天気を確認")
+                .Send(language == "ja-JP" ? "天気を確認" : "Check weather")
                 .AssertReply((activity) =>
                 {
-                    //    // Activity とアダプターからコンテキストを作成
-                    //    var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    //    // ダイアログコンテキストを取得
-                    //    var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    //    // 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
-                    //    var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    //    Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
-                .Test("キャンセル", "キャンセルします")
+                .Test(language == "ja-JP" ? "キャンセル" : "Cancel", language == "ja-JP" ? "キャンセルします" : "Cancel")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
@@ -286,35 +330,23 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        public async Task MyBot_GlobalCommand_ShouldGoToProfileDialog()
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MyBot_GlobalCommand_ShouldGoToProfileDialog(string language)
         {
-            var arrange = ArrangeTest(true);
+            var arrange = ArrangeTest(language, true);
 
             // テストの追加と実行
             await arrange.testFlow
-                .Test("foo", $"ようこそ '{name}' さん！")
+                .Test("foo", language == "ja-JP" ? $"ようこそ '{name}' さん！" : $"Welcome {name}!")
+                .AssertReply((activity) =>
+                {                   
+                })
+                .Send(language == "ja-JP" ? "天気を確認" : "Check weather")
                 .AssertReply((activity) =>
                 {
-                    //// Activity とアダプターからコンテキストを作成
-                    //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    //// ダイアログコンテキストを取得
-                    //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    //// 現在のダイアログスタックの一番上が MenuDialog の choice であることを確認。
-                    //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    //Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
-                .Send("天気を確認")
-                .AssertReply((activity) =>
-                {
-                    //// Activity とアダプターからコンテキストを作成
-                    //var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    //// ダイアログコンテキストを取得
-                    //var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    //// 現在のダイアログスタックの一番上が WeatherDialog の choice であることを確認。
-                    //var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
-                    //Assert.AreEqual(dialogInstances[0].Id, "choice");
-                })
-                .Send("プロファイルの変更")
+                .Send(language == "ja-JP" ? "プロファイルの変更" : "Update profile")
                 .AssertReply((activity) =>
                 {
                     // Activity とアダプターからコンテキストを作成
