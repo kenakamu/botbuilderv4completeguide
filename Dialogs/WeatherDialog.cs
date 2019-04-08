@@ -19,7 +19,7 @@ public class WeatherDialog : ComponentDialog
     {
         this.accessors = accessors;
         this.localizer = localizer;
-        date = localizer["today"];
+
         // ウォーターフォールのステップを定義。処理順にメソッドを追加。
         var waterfallSteps = new WaterfallStep[]
         {
@@ -35,6 +35,10 @@ public class WeatherDialog : ComponentDialog
 
     private async Task<DialogTurnResult> ShowWeatherAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
+        // 日付がない場合は今日を指定
+        if(string.IsNullOrEmpty(date))
+            date = localizer["today"];
+
         var userProfile = await accessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
 
         // アダプティブカードの定義を JSON ファイルより読込み、対象日を変更
