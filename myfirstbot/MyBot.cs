@@ -32,6 +32,7 @@ public class MyBot : IBot
         this.localizer = localizer;
         this.translator = translator;
         this.serviceProvider = serviceProvider;
+
         // コンポーネントダイアログを追加
         dialogs.Add((WelcomeDialog)serviceProvider.GetService(typeof(WelcomeDialog)));
         dialogs.Add((ProfileDialog)serviceProvider.GetService(typeof(ProfileDialog)));
@@ -224,5 +225,24 @@ public class MyBot : IBot
         // 最後に現在の UserProfile と DialogState を保存
         await accessors.UserState.SaveChangesAsync(turnContext, false, cancellationToken);
         await accessors.ConversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+    }
+
+    private async Task CompleteJobAsync(
+               BotAdapter adapter,
+               ConversationReference conversationReference,
+               string botId,
+               string proactiveMessage,
+               CancellationToken cancellationToken = default(CancellationToken))
+    {
+        await adapter.ContinueConversationAsync(botId, conversationReference, CreateProactiveCallback(proactiveMessage), cancellationToken);
+    }
+    
+    private BotCallbackHandler CreateProactiveCallback(string proactiveMessage)
+    {
+        return async (turnContext, token) =>
+        {
+            // Send the user a proactive confirmation message.
+            await turnContext.SendActivityAsync(proactiveMessage);
+        };
     }
 }

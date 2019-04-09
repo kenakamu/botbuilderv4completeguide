@@ -32,6 +32,7 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog(accessors, StringLocalizerFactory.GetStringLocalizer<WeatherDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>()));
+            serviceProvider.Setup(x => x.GetService(typeof(QnADialog))).Returns(new QnADialog(accessors,null, null, StringLocalizerFactory.GetStringLocalizer<QnADialog>()));
 
             // テスト対象のダイアログをインスタンス化
             var dialogs = new DialogSet(accessors.ConversationDialogState);
@@ -76,6 +77,7 @@ namespace myfirstbot.unittest
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["choicemenu"]) >= 0);
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkweather"]) >= 0);
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkschedule"]) >= 0);
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkqa"]) >= 0);
             })
             .Send(arrange.localizer["checkweather"])
             .AssertReply((activity) =>
@@ -94,7 +96,7 @@ namespace myfirstbot.unittest
         [TestMethod]
         [DataRow("ja-JP")]
         [DataRow("en-US")]
-        [ExpectedException(typeof(AggregateException), "OAuthPrompt.GetUserToken(): not supported by the current adapter")]
+        [ExpectedException(typeof(System.Exception), "OAuthPrompt.GetUserToken(): not supported by the current adapter")]
 
         public async Task MenuDialog_ShouldGoToScheduleDialog(string language)
         {
@@ -110,9 +112,44 @@ namespace myfirstbot.unittest
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["choicemenu"]) >= 0);
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkweather"]) >= 0);
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkschedule"]) >= 0);
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkqa"]) >= 0);
             })
             // 予定を確認を送った時点で OAuthPrompt.GetUserToken(): not supported by the current adapter エラーが出る
             .Test(arrange.localizer["checkschedule"], "dummy")
+            .StartTestAsync();
+        }
+
+        [TestMethod]
+        [DataRow("ja-JP")]
+        [DataRow("en-US")]
+        public async Task MenuDialog_ShouldGoToQnADialog(string language)
+        {
+            // 言語を指定してテストを作成
+            var arrange = ArrangeTest(language);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
+
+            // テストの追加と実行
+            await arrange.testFlow
+            .Send("foo")
+            .AssertReply((activity) =>
+            {
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["choicemenu"]) >= 0);
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkweather"]) >= 0);
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkschedule"]) >= 0);
+                Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkqa"]) >= 0);
+            })
+            .Send(arrange.localizer["checkqa"])
+            .AssertReply((activity) =>
+            {
+                // Activity とアダプターからコンテキストを作成
+                var turnContext = new TurnContext(arrange.adapter, activity as Activity);
+                // ダイアログコンテキストを取得
+                var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
+                // 現在のダイアログスタックの一番上が QnADialog であることを確認。
+                var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
+                Assert.AreEqual(dialogInstances[0].Id, nameof(QnADialog));
+            })
             .StartTestAsync();
         }
     }

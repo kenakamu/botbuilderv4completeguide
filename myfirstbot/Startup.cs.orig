@@ -18,8 +18,11 @@ using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using CognitiveServices.Translator;
 using CognitiveServices.Translator.Configuration;
-using Microsoft.Bot.Builder.AI.QnA;
+<<<<<<< HEAD:myfirstbot/Startup.cs
 using Microsoft.Graph;
+=======
+using Microsoft.Bot.Builder.AI.QnA;
+>>>>>>> article18:Startup.cs
 
 namespace myfirstbot
 {
