@@ -15,14 +15,14 @@ using Microsoft.Extensions.Localization;
 public class MyBot : IBot
 {
     private MyStateAccessors accessors;
-    private LuisRecognizer luisRecognizer;
+    private IRecognizer luisRecognizer;
     private DialogSet dialogs;
     private IStringLocalizer<MyBot> localizer;
     private ITranslateClient translator;
     private IServiceProvider serviceProvider;
 
     // DI で MyStateAccessors および luisRecognizer は自動解決
-    public MyBot(MyStateAccessors accessors, LuisRecognizer luisRecognizer,
+    public MyBot(MyStateAccessors accessors, IRecognizer luisRecognizer,
         IStringLocalizer<MyBot> localizer, IServiceProvider serviceProvider,
         ITranslateClient translator)
     {
@@ -91,9 +91,10 @@ public class MyBot : IBot
             else
             {
                 // 現在のダイアログのリソースを取得
-                var activeDialog = dialogContext.ActiveDialog.Id;
-                List<string> strings = (List<string>)
-                    typeof(MyBot).GetMethod("GetResourceStrings").MakeGenericMethod(new Type[] { Type.GetType(activeDialog) }).Invoke(this, null);
+                List<string> strings = dialogContext.ActiveDialog == null ? new List<string>() :
+                (List<string>)typeof(MyBot).GetMethod("GetResourceStrings").MakeGenericMethod(
+                    new Type[] { Type.GetType( dialogContext.ActiveDialog.Id) }
+                ).Invoke(this, null);
 
                 // リソースのテキストだった場合そのままダイアログを実行
                 if (strings.Where(x => x == turnContext.Activity.Text).FirstOrDefault() != null)
