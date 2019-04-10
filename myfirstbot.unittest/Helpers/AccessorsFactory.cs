@@ -60,6 +60,8 @@ namespace myfirstbot.unittest.Helpers
             {
                 // DialogState を ConversationState のプロパティとして設定
                 ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+                // Events を作成
+                Events = conversationState.CreateProperty<IList<Microsoft.Graph.Event>>("Events"),
                 // UserProfile を作成
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };

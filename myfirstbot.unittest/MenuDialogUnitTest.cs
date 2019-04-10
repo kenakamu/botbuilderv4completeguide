@@ -31,7 +31,7 @@ namespace myfirstbot.unittest
             // MenuDialog クラスで解決すべきサービスを登録
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog(accessors, StringLocalizerFactory.GetStringLocalizer<WeatherDialog>()));
-            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>()));
+            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(accessors, serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>(), new ScheduleNotificationStore()));
             serviceProvider.Setup(x => x.GetService(typeof(QnADialog))).Returns(new QnADialog(accessors,null, null, StringLocalizerFactory.GetStringLocalizer<QnADialog>()));
 
             // テスト対象のダイアログをインスタンス化

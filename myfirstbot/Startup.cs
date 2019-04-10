@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Localization;
 using CognitiveServices.Translator;
 using CognitiveServices.Translator.Configuration;
 using Microsoft.Bot.Builder.AI.QnA;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 
 namespace myfirstbot
@@ -98,6 +100,8 @@ namespace myfirstbot
                 {
                     // DialogState を作成
                     ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+                    // Events を作成
+                    Events = conversationState.CreateProperty<IList<Microsoft.Graph.Event>>("Events"),
                     // UserProfile を作成
                     UserProfile = userState.CreateProperty<UserProfile>("UserProfile"),
                 };
@@ -146,12 +150,19 @@ namespace myfirstbot
             };
             var qnaMaker = new QnAMaker(qnaEndpoint);
             services.AddSingleton(sp => qnaMaker);
+            // 通知を保持するデータベースをシングルトンとして追加
+            services.AddSingleton(sp => new ScheduleNotificationStore());
+            // MVC 有効化
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // BotConfiguration を IoC に追加
+            services.AddSingleton(sp => botConfig);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseBotFramework();
+            app.UseMvc();
         }
     }
 }

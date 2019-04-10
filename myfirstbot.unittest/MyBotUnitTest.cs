@@ -44,7 +44,7 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(SelectLanguageDialog))).Returns(new SelectLanguageDialog(accessors));
             serviceProvider.Setup(x => x.GetService(typeof(WelcomeDialog))).Returns
                 (new WelcomeDialog(accessors, null, serviceProvider.Object));
-            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>()));
+            serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(accessors, serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>(), new ScheduleNotificationStore()));
             serviceProvider.Setup(x => x.GetService(typeof(QnADialog))).Returns(new QnADialog(accessors, null, null, StringLocalizerFactory.GetStringLocalizer<QnADialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MenuDialog))).Returns(new MenuDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<MenuDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(PhotoUpdateDialog))).Returns(new PhotoUpdateDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<PhotoUpdateDialog>()));

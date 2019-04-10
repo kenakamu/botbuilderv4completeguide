@@ -61,4 +61,16 @@
   <data name="failed" xml:space="preserve">
     <value>Failed to signin</value>
   </data>
+  <data name="nonotification" xml:space="preserve">
+    <value>I don't need notificaiton.</value>
+  </data>
+  <data name="setnotification" xml:space="preserve">
+    <value>Which schedule item do you want to set notification?</value>
+  </data>
+  <data name="noevents" xml:space="preserve">
+    <value>There is no scheduled events.</value>
+  </data>
+  <data name="notificationset" xml:space="preserve">
+    <value>Set the notification.</value>
+  </data>
 </root>

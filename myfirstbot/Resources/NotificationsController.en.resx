@@ -58,19 +58,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="failed" xml:space="preserve">
-    <value>サインインに失敗しました。</value>
-  </data>
-  <data name="nonotification" xml:space="preserve">
-    <value>設定しない</value>
-  </data>
-  <data name="setnotification" xml:space="preserve">
-    <value>どの予定について通知しますか？</value>
-  </data>
-  <data name="noevents" xml:space="preserve">
-    <value>予定がありませんでした。</value>
-  </data>
-  <data name="notificationset" xml:space="preserve">
-    <value>通知を設定しました。</value>
+  <data name="notification" xml:space="preserve">
+    <value>Schedule Notification</value>
   </data>
 </root>
