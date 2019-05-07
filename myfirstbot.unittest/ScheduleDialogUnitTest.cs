@@ -61,22 +61,24 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(MSGraphService))).Returns(new MSGraphService(mockGraphSDK.Object));
 
             // テスト対象のダイアログをインスタンス化
-            var loginDialog = new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
-            // OAuthPrompt をテスト用のプロンプトに差し替え
-            loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
+            // var loginDialog = new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
+            //// OAuthPrompt をテスト用のプロンプトに差し替え
+            // loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
 
             var scheduleNotificationStore = new ScheduleNotificationStore();
             var scheduleDialog = new ScheduleDialog(accessors, serviceProvider.Object, localizer, scheduleNotificationStore);
             // ログインダイアログを上記でつくったものに差し替え
-            scheduleDialog.ReplaceDialog(loginDialog);
+            // scheduleDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(scheduleDialog);
-            dialogs.Add(loginDialog);
+            //dialogs.Add(loginDialog);
 
             // アダプターを作成し必要なミドルウェアを追加
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
+            // アダプターからダミーログインを返すように設定
+            adapter.AddUserToken("AzureAdv2", "test", "user1", "dummyToken");
             // TestFlow の作成
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
