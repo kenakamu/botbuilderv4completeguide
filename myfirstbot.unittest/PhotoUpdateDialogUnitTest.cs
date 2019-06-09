@@ -25,12 +25,12 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<PhotoUpdateDialog>();
 
-            // Microsoft Graph Œn‚Ìƒ‚ƒbƒN
+            // Microsoft Graph ç³»ã®ãƒ¢ãƒƒã‚¯
             var mockGraphSDK = new Mock<IGraphServiceClient>();
-            // ƒvƒƒtƒ@ƒCƒ‹Ê^‚Ì‘€ì‚ğƒ‚ƒbƒN
+            // ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«å†™çœŸã®æ“ä½œã‚’ãƒ¢ãƒƒã‚¯
             mockGraphSDK.Setup(x => x.Me.Photo.Content.Request(null).PutAsync(It.IsAny<Stream>()))
                 .Returns(Task.FromResult(default(Stream)));
 
@@ -42,35 +42,35 @@ namespace myfirstbot.unittest
 
             var msGraphService = new MSGraphService(mockGraphSDK.Object);
 
-            // IServiceProvider ‚Ìƒ‚ƒbƒN
+            // IServiceProvider ã®ãƒ¢ãƒƒã‚¯
             var serviceProvider = new Mock<IServiceProvider>();
 
-            // PhotoUpdateDialog ƒNƒ‰ƒX‚Å‰ğŒˆ‚·‚×‚«ƒT[ƒrƒX‚ğ“o˜^
+            // PhotoUpdateDialog ã‚¯ãƒ©ã‚¹ã§è§£æ±ºã™ã¹ãã‚µãƒ¼ãƒ“ã‚¹ã‚’ç™»éŒ²
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MSGraphService))).Returns(new MSGraphService(mockGraphSDK.Object));
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             //var loginDialog = new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
-            // OAuthPrompt ‚ğƒeƒXƒg—p‚Ìƒvƒƒ“ƒvƒg‚É·‚µ‘Ö‚¦
+            // OAuthPrompt ã‚’ãƒ†ã‚¹ãƒˆç”¨ã®ãƒ—ãƒ­ãƒ³ãƒ—ãƒˆã«å·®ã—æ›¿ãˆ
             //loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
             var photoUpdateDialog = new PhotoUpdateDialog(serviceProvider.Object, localizer);
-            // ƒƒOƒCƒ“ƒ_ƒCƒAƒƒO‚ğã‹L‚Å‚Â‚­‚Á‚½‚à‚Ì‚É·‚µ‘Ö‚¦
+            // ãƒ­ã‚°ã‚¤ãƒ³ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ä¸Šè¨˜ã§ã¤ãã£ãŸã‚‚ã®ã«å·®ã—æ›¿ãˆ
             //photoUpdateDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(photoUpdateDialog);
             //dialogs.Add(loginDialog);
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // ƒAƒ_ƒvƒ^[‚©‚çƒ_ƒ~[ƒƒOƒCƒ“‚ğ•Ô‚·‚æ‚¤‚Éİ’è
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ãƒ€ãƒŸãƒ¼ãƒ­ã‚°ã‚¤ãƒ³ã‚’è¿”ã™ã‚ˆã†ã«è¨­å®š
             adapter.AddUserToken("AzureAdv2", "test", "user1", "dummyToken");
 
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -88,7 +88,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task PhotoUpdateDialogShouldUpdateAndReturnPicture(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);

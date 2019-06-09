@@ -24,21 +24,21 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<ProfileDialog>();
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new ProfileDialog(accessors, localizer));
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -56,7 +56,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task ProfileDialog_ShouldSaveProfile(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
@@ -65,7 +65,7 @@ namespace myfirstbot.unittest
             .Send("foo")
             .AssertReply((activity) =>
             {
-                // ƒAƒ_ƒvƒeƒBƒuƒJ[ƒh‚ğ”äŠr
+                // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ã‚«ãƒ¼ãƒ‰ã‚’æ¯”è¼ƒ
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
                     JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Profile.json")).ToString()
@@ -81,7 +81,7 @@ namespace myfirstbot.unittest
                     {"birthday" , new DateTime(1976, 7, 21)},
                     {"hasCat" , true},
                     {"catNum" , "3"},
-                    {"catTypes", "ƒLƒWƒgƒ‰,ƒTƒoƒgƒ‰,ƒnƒ`ƒƒŒ" },
+                    {"catTypes", "ã‚­ã‚¸ãƒˆãƒ©,ã‚µãƒãƒˆãƒ©,ãƒãƒãƒ¯ãƒ¬" },
                     {"playWithCat" , true}
                 }.ToString()
             })

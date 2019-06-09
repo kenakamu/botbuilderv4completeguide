@@ -14,7 +14,7 @@ namespace myfirstbot.unittest
 
         private PromptValidatorContext<T> CreatePromptValidatorContext<T>(bool succeeded, T obj, object validations)
         {
-            // リフレクションでコンストラクターを取得して実行し、PromptValidatorContext を作成
+            // 繝ｪ繝輔Ξ繧ｯ繧ｷ繝ｧ繝ｳ縺ｧ繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ繝ｼ繧貞叙蠕励＠縺ｦ螳溯｡後＠縲￣romptValidatorContext 繧剃ｽ懈��
             var promptContext = (PromptValidatorContext<T>)typeof(PromptValidatorContext<T>).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
                 new[] {
                     typeof(ITurnContext),

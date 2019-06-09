@@ -17,7 +17,7 @@ namespace myfirstbot.unittest
     [TestClass]
     public class NotificationsControllerUnitTest
     {
-        // ƒ_ƒ~[‚Ìƒf[ƒ^ì¬
+        // ãƒ€ãƒŸãƒ¼ã®ãƒ‡ãƒ¼ã‚¿ä½œæˆ
         ScheduleNotification scheduleNotification = new ScheduleNotification
         {
             Title = "Dummy 1",
@@ -45,13 +45,13 @@ namespace myfirstbot.unittest
 
             var appId = Guid.NewGuid().ToString();
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new BotFrameworkAdapter(new SimpleCredentialProvider(appId, ""))
                 .Use(new TestConnectorClientMiddleware(testConnectorClientValidator));
 
-            // IServiceProvider ‚Ìƒ‚ƒbƒN
+            // IServiceProvider ã®ãƒ¢ãƒƒã‚¯
             var serviceProvider = new Mock<IServiceProvider>();
-            // ‰ğŒˆ‚·‚×‚«ƒT[ƒrƒX‚ğ“o˜^
+            // è§£æ±ºã™ã¹ãã‚µãƒ¼ãƒ“ã‚¹ã‚’ç™»éŒ²
             serviceProvider.Setup(x => x.GetService(typeof(IAdapterIntegration))).Returns(adapter);
 
             var localizer = StringLocalizerFactory.GetStringLocalizer<NotificationsController>();
@@ -66,7 +66,7 @@ namespace myfirstbot.unittest
                 }
             };
 
-            // ƒRƒ“ƒgƒ[ƒ‰[‚Ìì¬
+            // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ä½œæˆ
             NotificationsController notificationsController =
                 new NotificationsController(serviceProvider.Object, localizer, botConfiguration, scheduleNotificationStore);
 
@@ -79,15 +79,15 @@ namespace myfirstbot.unittest
         public void NotificationService_ShouldSendNotification(string language)
         {
             var testConnectorClientValidator = new TestConnectorClientValidator();
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language, testConnectorClientValidator);
 
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // Post ƒƒ\ƒbƒh‚ÌŒÄ‚Ño‚µ
+            // Post ãƒ¡ã‚½ãƒƒãƒ‰ã®å‘¼ã³å‡ºã—
             arrange.notificationsController.Post();
-            // Œ‹‰Ê‚ÌŒŸØ
+            // çµæœã®æ¤œè¨¼
             testConnectorClientValidator.AssertReply((activity)=>{
                 Assert.AreEqual( 
                     (activity as Activity).Text, 

@@ -47,11 +47,11 @@ namespace myfirstbot.unittest
         {
             var question = JObject.Parse(await request.Content.ReadAsStringAsync())["question"].ToString();
             var queryResults = new List<InternalQueryResult>();
-            if (question == "¿–â")
+            if (question == "è³ªå•")
             {
                 queryResults.Add(new InternalQueryResult()
                 {
-                    Answer = "“š‚¦",
+                    Answer = "ç­”ãˆ",
                     Score = 100,
                 });
             }
@@ -59,7 +59,7 @@ namespace myfirstbot.unittest
             {
                 queryResults.Add(new InternalQueryResult()
                 {
-                    Answer = "“š‚¦‚È‚µ",
+                    Answer = "ç­”ãˆãªã—",
                     Score = 1,
                 });
             }
@@ -84,10 +84,10 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<QnADialog>();
                      
-            // –|–óƒT[ƒrƒX‚Ìƒ‚ƒbƒN‰»
+            // ç¿»è¨³ã‚µãƒ¼ãƒ“ã‚¹ã®ãƒ¢ãƒƒã‚¯åŒ–
             var mockTranslateClient = new Mock<ITranslateClient>();
             mockTranslateClient.Setup(l => l.TranslateAsync(It.IsAny<RequestContent>(), It.IsAny<RequestParameter>()))
                 .Returns((RequestContent requestContent, RequestParameter requestParameter) =>
@@ -96,9 +96,9 @@ namespace myfirstbot.unittest
                     switch (requestContent.Text)
                     {
                         case "Question":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "¿–â" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "è³ªå•" } } });
                             break;
-                        case "“š‚¦":
+                        case "ç­”ãˆ":
                             response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "Answer" } } });
                             break;                        
                         default:
@@ -108,7 +108,7 @@ namespace myfirstbot.unittest
                     return Task.FromResult(response as IList<ResponseBody>);
                 });
 
-            // QnA ƒT[ƒrƒX‚Ìƒ‚ƒbƒN‰»            
+            // QnA ã‚µãƒ¼ãƒ“ã‚¹ã®ãƒ¢ãƒƒã‚¯åŒ–            
             var qnaEndpoint = new QnAMakerEndpoint()
             {
                 KnowledgeBaseId = "dummyId",
@@ -116,19 +116,19 @@ namespace myfirstbot.unittest
                 Host = "https://dummyhost.test/qna",
             };
             var qnaMaker = new QnAMaker(qnaEndpoint, httpClient:new HttpClient(new MockQnAMakerHandler()));
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new QnADialog(accessors, qnaMaker, mockTranslateClient.Object, localizer));
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new SetLocaleMiddleware(Culture.Japanese))
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -146,22 +146,22 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task QnADialog_ShouldReturnAnswer(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
                
             })
-            .Send(language == "ja-JP" ? "¿–â" : "Question")
+            .Send(language == "ja-JP" ? "è³ªå•" : "Question")
             .AssertReply((activity) =>
             {
-                Assert.AreEqual((activity as Activity).Text, language == "ja-JP" ? "“š‚¦" : "Answer");
+                Assert.AreEqual((activity as Activity).Text, language == "ja-JP" ? "ç­”ãˆ" : "Answer");
             })
             .StartTestAsync();
         }
@@ -170,12 +170,12 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task QnADialog_ShouldReturnNoAnswer(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>

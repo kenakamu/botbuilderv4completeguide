@@ -22,21 +22,21 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<WeatherDialog>();
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new WeatherDialog(accessors, localizer));
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
             
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -54,13 +54,13 @@ namespace myfirstbot.unittest
         }
 
         [TestMethod]
-        [DataRow("ja-JP","–¾“ú")]
-        [DataRow("ja-JP","–¾Œã“ú")]
+        [DataRow("ja-JP","æ˜æ—¥")]
+        [DataRow("ja-JP","æ˜å¾Œæ—¥")]
         [DataRow("en-US","tomorrow")]
         [DataRow("en-US","day after tomorrow")]
         public async Task WeatherDialog_ShouldReturnChoice(string language, string date)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
@@ -69,16 +69,16 @@ namespace myfirstbot.unittest
             .Send("foo")
             .AssertReply((activity) =>
             {
-                // ƒAƒ_ƒvƒeƒBƒuƒJ[ƒh‚ğ”äŠr
+                // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ã‚«ãƒ¼ãƒ‰ã‚’æ¯”è¼ƒ
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
                     JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", arrange.localizer["today"])).ToString()
                 );
             })
-            .Send("‘¼‚Ì“ú‚Ì“V‹C")
+            .Send("ä»–ã®æ—¥ã®å¤©æ°—")
             .AssertReply((activity) =>
             {
-                // ƒAƒ_ƒvƒeƒBƒuƒJ[ƒh‚ğ”äŠr
+                // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ã‚«ãƒ¼ãƒ‰ã‚’æ¯”è¼ƒ
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
                     JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/WeatherDateChoice.json")).ToString()
@@ -87,7 +87,7 @@ namespace myfirstbot.unittest
             .Send(date)
             .AssertReply((activity) =>
             {
-                // ƒAƒ_ƒvƒeƒBƒuƒJ[ƒh‚ğ”äŠr
+                // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ã‚«ãƒ¼ãƒ‰ã‚’æ¯”è¼ƒ
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
                     JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", date)).ToString()
@@ -102,7 +102,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task WeatherDialog_ShouldReturnChoiceAndComplete(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
@@ -111,7 +111,7 @@ namespace myfirstbot.unittest
             .Send("foo")
             .AssertReply((activity) =>
             {
-                // ƒAƒ_ƒvƒeƒBƒuƒJ[ƒh‚ğ”äŠr
+                // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ã‚«ãƒ¼ãƒ‰ã‚’æ¯”è¼ƒ
                 Assert.AreEqual(
                     JObject.Parse((activity as Activity).Attachments[0].Content.ToString()).ToString(),
                     JObject.Parse(File.ReadAllText($"./AdaptiveJsons/{language}/Weather.json").Replace("{0}", arrange.localizer["today"])).ToString()

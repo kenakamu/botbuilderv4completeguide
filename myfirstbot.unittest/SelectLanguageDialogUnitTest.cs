@@ -14,19 +14,19 @@ namespace myfirstbot.unittest
     {
         private TestFlow ArrangeTest()
         {
-            // ƒXƒgƒŒ[ƒW‚Æ‚µ‚ÄƒCƒ“ƒƒ‚ƒŠ‚ğ—˜—p
+            // ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸ã¨ã—ã¦ã‚¤ãƒ³ãƒ¡ãƒ¢ãƒªã‚’åˆ©ç”¨
             IStorage dataStore = new MemoryStorage();
-            // ‚»‚ê‚¼‚ê‚ÌƒXƒe[ƒg‚ğì¬
+            // ãã‚Œãã‚Œã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ä½œæˆ
             var mockStorage = new Mock<IStorage>();
-            // User1—p‚É•Ô‚·ƒf[ƒ^‚ğì¬
-            // UserState ‚ÌƒL[‚Í <channelId>/users/<userId>
+            // User1ç”¨ã«è¿”ã™ãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
+            // UserState ã®ã‚­ãƒ¼ã¯ <channelId>/users/<userId>
             var dictionary = new Dictionary<string, object>();
-            // ƒ†[ƒU[ƒvƒƒtƒ@ƒCƒ‹‚ğİ’èB
+            // ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¨­å®šã€‚
             dictionary.Add("test/users/user1", new Dictionary<string, object>()
                 {
                     { "UserProfile", new UserProfile() { Name = "Ken", Age = 0} }
                 });
-            // ƒXƒgƒŒ[ƒW‚Ö‚Ì“Ç‚İ‘‚«‚ğİ’è
+            // ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸ã¸ã®èª­ã¿æ›¸ãã‚’è¨­å®š
             mockStorage.Setup(ms => ms.WriteAsync(It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Returns((Dictionary<string, object> dic, CancellationToken token) =>
                 {
@@ -53,29 +53,29 @@ namespace myfirstbot.unittest
                     return Task.FromResult(result: (IDictionary<string, object>)dictionary);
                 });
 
-            // ‚»‚ê‚¼‚ê‚ÌƒXƒe[ƒg‚ğì¬
+            // ãã‚Œãã‚Œã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ä½œæˆ
             var conversationState = new ConversationState(mockStorage.Object);
             var userState = new UserState(mockStorage.Object);
             var accessors = new MyStateAccessors(userState, conversationState)
             {
-                // DialogState ‚ğ ConversationState ‚ÌƒvƒƒpƒeƒB‚Æ‚µ‚Äİ’è
+                // DialogState ã‚’ ConversationState ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã¨ã—ã¦è¨­å®š
                 ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
-                // UserProfile ‚ğì¬
+                // UserProfile ã‚’ä½œæˆ
                 UserProfile = userState.CreateProperty<UserProfile>("UserProfile")
             };
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new SelectLanguageDialog(accessors));
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(userState, conversationState));
 
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             return new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -83,7 +83,7 @@ namespace myfirstbot.unittest
                 {
                     await dialogContext.BeginDialogAsync(nameof(SelectLanguageDialog), null, cancellationToken);
                 }
-                // ƒ_ƒCƒAƒƒO‚ªŠ®—¹‚µ‚½ê‡‚ÍAUserProfile ‚ÌŒ¾Œê‚ğƒeƒXƒg‘¤‚É•Ô‚·
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒå®Œäº†ã—ãŸå ´åˆã¯ã€UserProfile ã®è¨€èªã‚’ãƒ†ã‚¹ãƒˆå´ã«è¿”ã™
                 else if (results.Status == DialogTurnStatus.Complete)
                 {
                     await turnContext.SendActivityAsync((await accessors.UserProfile.GetAsync(turnContext)).Language);
@@ -94,19 +94,19 @@ namespace myfirstbot.unittest
         [TestMethod]
         public async Task SelectLanguageDialog_ShouldSetJapanese()
         {
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await ArrangeTest()
-            .Test("foo", "Œ¾Œê‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢BSelect your language (1) “ú–{Œê or (2) English")
-            .Test("“ú–{Œê","ja-JP")
+            .Test("foo", "è¨€èªã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚Select your language (1) æ—¥æœ¬èª or (2) English")
+            .Test("æ—¥æœ¬èª","ja-JP")
             .StartTestAsync();
         }
 
         [TestMethod]
         public async Task SelectLanguageDialog_ShouldSetEnglish()
         {
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await ArrangeTest()
-            .Test("foo", "Œ¾Œê‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢BSelect your language (1) “ú–{Œê or (2) English")
+            .Test("foo", "è¨€èªã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚Select your language (1) æ—¥æœ¬èª or (2) English")
             .Test("English", "en-US")
             .StartTestAsync();
         }

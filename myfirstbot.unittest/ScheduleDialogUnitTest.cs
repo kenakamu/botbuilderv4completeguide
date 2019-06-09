@@ -18,19 +18,19 @@ namespace myfirstbot.unittest
     [TestClass]
     public class ScheduleDialogUnitTest
     {
-        // ƒ_ƒ~[‚Ì—\’è—p‚Ì
+        // ãƒ€ãƒŸãƒ¼ã®äºˆå®šç”¨ã®æ™‚åˆ»
         DateTime datetime = DateTime.Now;
 
         private (ScheduleNotificationStore scheduleNotificationStore, TestFlow testFlow, StringLocalizer<ScheduleDialog> localizer) ArrangeTest(string language, bool returnEvents)
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>();
 
-            // Microsoft Graph Œn‚Ìƒ‚ƒbƒN
+            // Microsoft Graph ç³»ã®ãƒ¢ãƒƒã‚¯
             var mockGraphSDK = new Mock<IGraphServiceClient>();
-            // ƒ_ƒ~[‚Ì—\’è‚ğ•Ô‚·B
+            // ãƒ€ãƒŸãƒ¼ã®äºˆå®šã‚’è¿”ã™ã€‚
             mockGraphSDK.Setup(x => x.Me.CalendarView.Request(It.IsAny<List<QueryOption>>()).GetAsync())
                 .ReturnsAsync(() =>
                 {
@@ -53,36 +53,36 @@ namespace myfirstbot.unittest
                     return page;
                 });
 
-            // IServiceProvider ‚Ìƒ‚ƒbƒN
+            // IServiceProvider ã®ãƒ¢ãƒƒã‚¯
             var serviceProvider = new Mock<IServiceProvider>();
 
-            // ScheduleDialog ƒNƒ‰ƒX‚Å‰ğŒˆ‚·‚×‚«ƒT[ƒrƒX‚ğ“o˜^
+            // ScheduleDialog ã‚¯ãƒ©ã‚¹ã§è§£æ±ºã™ã¹ãã‚µãƒ¼ãƒ“ã‚¹ã‚’ç™»éŒ²
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MSGraphService))).Returns(new MSGraphService(mockGraphSDK.Object));
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             // var loginDialog = new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
-            //// OAuthPrompt ‚ğƒeƒXƒg—p‚Ìƒvƒƒ“ƒvƒg‚É·‚µ‘Ö‚¦
+            //// OAuthPrompt ã‚’ãƒ†ã‚¹ãƒˆç”¨ã®ãƒ—ãƒ­ãƒ³ãƒ—ãƒˆã«å·®ã—æ›¿ãˆ
             // loginDialog.ReplaceDialog(new TestOAuthPrompt("login", new OAuthPromptSettings()));
 
             var scheduleNotificationStore = new ScheduleNotificationStore();
             var scheduleDialog = new ScheduleDialog(accessors, serviceProvider.Object, localizer, scheduleNotificationStore);
-            // ƒƒOƒCƒ“ƒ_ƒCƒAƒƒO‚ğã‹L‚Å‚Â‚­‚Á‚½‚à‚Ì‚É·‚µ‘Ö‚¦
+            // ãƒ­ã‚°ã‚¤ãƒ³ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ä¸Šè¨˜ã§ã¤ãã£ãŸã‚‚ã®ã«å·®ã—æ›¿ãˆ
             // scheduleDialog.ReplaceDialog(loginDialog);
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(scheduleDialog);
             //dialogs.Add(loginDialog);
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // ƒAƒ_ƒvƒ^[‚©‚çƒ_ƒ~[ƒƒOƒCƒ“‚ğ•Ô‚·‚æ‚¤‚Éİ’è
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ãƒ€ãƒŸãƒ¼ãƒ­ã‚°ã‚¤ãƒ³ã‚’è¿”ã™ã‚ˆã†ã«è¨­å®š
             adapter.AddUserToken("AzureAdv2", "test", "user1", "dummyToken");
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -90,7 +90,7 @@ namespace myfirstbot.unittest
                 {
                     await dialogContext.BeginDialogAsync(nameof(ScheduleDialog), null, cancellationToken);
                 }
-                // ƒ_ƒCƒAƒƒO‚ªŠ®—¹‚µ‚½ê‡‚ÍAComplete ‚ğƒeƒXƒg‘¤‚É•Ô‚·
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒå®Œäº†ã—ãŸå ´åˆã¯ã€Complete ã‚’ãƒ†ã‚¹ãƒˆå´ã«è¿”ã™
                 else if (results.Status == DialogTurnStatus.Complete)
                 {
                     await turnContext.SendActivityAsync("complete");
@@ -105,7 +105,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task ScheduleDialog_ShouldReturnEventsAndSuccessfullyCreateNotification(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language, true);
 
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
@@ -142,7 +142,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task ScheduleDialog_ShouldReturnEventsAndNotSetNotification(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language, true);
 
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
@@ -179,7 +179,7 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task ScheduleDialog_ShouldReturnNoEventMessage(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language, false);
 
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);

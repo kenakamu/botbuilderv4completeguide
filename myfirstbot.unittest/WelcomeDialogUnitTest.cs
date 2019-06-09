@@ -26,28 +26,28 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<WelcomeDialog>();
 
-            // IServiceProvider ‚Ìƒ‚ƒbƒN
+            // IServiceProvider ã®ãƒ¢ãƒƒã‚¯
             var serviceProvider = new Mock<IServiceProvider>();
 
-            // WelcomeDialog ƒNƒ‰ƒX‚Å‰ğŒˆ‚·‚×‚«ƒT[ƒrƒX‚ğ“o˜^
+            // WelcomeDialog ã‚¯ãƒ©ã‚¹ã§è§£æ±ºã™ã¹ãã‚µãƒ¼ãƒ“ã‚¹ã‚’ç™»éŒ²
             serviceProvider.Setup(x => x.GetService(typeof(ProfileDialog))).Returns(new ProfileDialog(accessors, null));
             serviceProvider.Setup(x => x.GetService(typeof(SelectLanguageDialog))).Returns(new SelectLanguageDialog(accessors));
 
-            // ƒeƒXƒg‘ÎÛ‚Ìƒ_ƒCƒAƒƒO‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new WelcomeDialog(accessors, localizer, serviceProvider.Object));
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µ•K—v‚Èƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰Á
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—å¿…è¦ãªãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ 
             var adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // ƒ_ƒCƒAƒƒO‚É•K—v‚ÈƒR[ƒh‚¾‚¯’Ç‰Á
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«å¿…è¦ãªã‚³ãƒ¼ãƒ‰ã ã‘è¿½åŠ 
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -55,7 +55,7 @@ namespace myfirstbot.unittest
                 {
                     await dialogContext.BeginDialogAsync(nameof(WelcomeDialog), null, cancellationToken);
                 }
-                // ƒ_ƒCƒAƒƒO‚ªŠ®—¹‚µ‚½ê‡‚ÍAUserProfile ‚Ì–¼‘O‚ğƒeƒXƒg‘¤‚É•Ô‚·
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒå®Œäº†ã—ãŸå ´åˆã¯ã€UserProfile ã®åå‰ã‚’ãƒ†ã‚¹ãƒˆå´ã«è¿”ã™
                 else if (results.Status == DialogTurnStatus.Complete)
                 {
                     await turnContext.SendActivityAsync((await accessors.UserProfile.GetAsync(turnContext)).Name);
@@ -70,20 +70,20 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task WelcomeDialog_ShouldGoToProfileDialog(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
-                // Activity ‚Éƒq[ƒ[ƒJ[ƒh‚ªŠÜ‚Ü‚ê‚Ä‚¢‚é‚±‚Æ‚ğŠm”FB
+                // Activity ã«ãƒ’ãƒ¼ãƒ­ãƒ¼ã‚«ãƒ¼ãƒ‰ãŒå«ã¾ã‚Œã¦ã„ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                 Assert.AreEqual((activity as Activity).Attachments.Count, 1);
                 var heroCard = (activity as Activity).Attachments.First().Content as HeroCard;
-                // ƒq[ƒ[ƒJ[ƒh‚Ì“à—e‚ğŠm”FB
+                // ãƒ’ãƒ¼ãƒ­ãƒ¼ã‚«ãƒ¼ãƒ‰ã®å†…å®¹ã‚’ç¢ºèªã€‚
                 Assert.AreEqual(heroCard.Title, arrange.localizer["title"]);
                 Assert.AreEqual(heroCard.Buttons.Where(x => x.Title == arrange.localizer["yes"]).First().Value, arrange.localizer["yes"].ToString());
                 Assert.AreEqual(heroCard.Buttons.Where(x => x.Title == arrange.localizer["skip"]).First().Value, arrange.localizer["skip"].ToString());
@@ -92,11 +92,11 @@ namespace myfirstbot.unittest
             .Send(arrange.localizer["yes"])
             .AssertReply((activity) =>
             {
-                // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                 var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                 var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª ProfileDialog ‚Å ‚»‚Ì‰º‚ª welcome ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ ProfileDialog ã§ ãã®ä¸‹ãŒ welcome ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                 var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WelcomeDialog)).First().State["dialogs"] as DialogState).DialogStack;
                 Assert.AreEqual(dialogInstances[0].Id, nameof(ProfileDialog));
                 Assert.AreEqual(dialogInstances[1].Id, "welcome");
@@ -109,20 +109,20 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task WelcomeDialog_ShouldSetAnonymous(string language)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒeƒXƒg‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ãƒ†ã‚¹ãƒˆã‚’ä½œæˆ
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
             {
-                // Activity ‚Éƒq[ƒ[ƒJ[ƒh‚ªŠÜ‚Ü‚ê‚Ä‚¢‚é‚±‚Æ‚ğŠm”FB
+                // Activity ã«ãƒ’ãƒ¼ãƒ­ãƒ¼ã‚«ãƒ¼ãƒ‰ãŒå«ã¾ã‚Œã¦ã„ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                 Assert.AreEqual((activity as Activity).Attachments.Count, 1);
                 var heroCard = (activity as Activity).Attachments.First().Content as HeroCard;
-                // ƒq[ƒ[ƒJ[ƒh‚Ì“à—e‚ğŠm”FB
+                // ãƒ’ãƒ¼ãƒ­ãƒ¼ã‚«ãƒ¼ãƒ‰ã®å†…å®¹ã‚’ç¢ºèªã€‚
                 Assert.AreEqual(heroCard.Title, arrange.localizer["title"]);
                 Assert.AreEqual(heroCard.Buttons.Where(x => x.Title == arrange.localizer["yes"]).First().Value, arrange.localizer["yes"].ToString());
                 Assert.AreEqual(heroCard.Buttons.Where(x => x.Title == arrange.localizer["skip"]).First().Value, arrange.localizer["skip"].ToString());
@@ -131,7 +131,7 @@ namespace myfirstbot.unittest
             .Send(arrange.localizer["skip"])
             .AssertReply((activity) =>
             {
-                // •Ô‚Á‚Ä‚«‚½ƒeƒLƒXƒg‚ª“½–¼‚©‚ğŠm”F
+                // è¿”ã£ã¦ããŸãƒ†ã‚­ã‚¹ãƒˆãŒåŒ¿åã‹ã‚’ç¢ºèª
                 Assert.AreEqual((activity as Activity).Text, arrange.localizer["anonymous"].ToString());
             })
             .StartTestAsync();

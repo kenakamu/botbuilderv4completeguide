@@ -22,31 +22,31 @@ namespace myfirstbot.unittest
         {
             var accessors = AccessorsFactory.GetAccessors(language);
 
-            // ÉäÉ\Å[ÉXÇóòópÇ∑ÇÈÇΩÇﬂ StringLocalizer ÇçÏê¨
+            // „É™„ÇΩ„Éº„Çπ„ÇíÂà©Áî®„Åô„Çã„Åü„ÇÅ StringLocalizer „Çí‰ΩúÊàê
             var localizer = StringLocalizerFactory.GetStringLocalizer<MenuDialog>();
 
-            // IServiceProvider ÇÃÉÇÉbÉN
+            // IServiceProvider „ÅÆ„É¢„ÉÉ„ÇØ
             var serviceProvider = new Mock<IServiceProvider>();
 
-            // MenuDialog ÉNÉâÉXÇ≈âåàÇ∑Ç◊Ç´ÉTÅ[ÉrÉXÇìoò^
+            // MenuDialog „ÇØ„É©„Çπ„ÅßËß£Ê±∫„Åô„Åπ„Åç„Çµ„Éº„Éì„Çπ„ÇíÁôªÈå≤
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog(accessors, StringLocalizerFactory.GetStringLocalizer<WeatherDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(ScheduleDialog))).Returns(new ScheduleDialog(accessors, serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>(), new ScheduleNotificationStore()));
             serviceProvider.Setup(x => x.GetService(typeof(QnADialog))).Returns(new QnADialog(accessors,null, null, StringLocalizerFactory.GetStringLocalizer<QnADialog>()));
 
-            // ÉeÉXÉgëŒè€ÇÃÉ_ÉCÉAÉçÉOÇÉCÉìÉXÉ^ÉìÉXâª
+            // „ÉÜ„Çπ„ÉàÂØæË±°„ÅÆ„ÉÄ„Ç§„Ç¢„É≠„Ç∞„Çí„Ç§„É≥„Çπ„Çø„É≥„ÇπÂåñ
             var dialogs = new DialogSet(accessors.ConversationDialogState);
             dialogs.Add(new MenuDialog(serviceProvider.Object, localizer));
 
-            // ÉAÉ_ÉvÉ^Å[ÇçÏê¨ÇµïKóvÇ»É~ÉhÉãÉEÉFÉAÇí«â¡
+            // „Ç¢„ÉÄ„Éó„Çø„Éº„Çí‰ΩúÊàê„ÅóÂøÖË¶Å„Å™„Éü„Éâ„É´„Ç¶„Çß„Ç¢„ÇíËøΩÂä†
             var adapter = new TestAdapter()
                 .Use(new SetLocaleMiddleware(Culture.Japanese))
                 .Use(new AutoSaveStateMiddleware(accessors.UserState, accessors.ConversationState));
 
-            // TestFlow ÇÃçÏê¨
+            // TestFlow „ÅÆ‰ΩúÊàê
             var testFlow = new TestFlow(adapter, async (turnContext, cancellationToken) =>
             {
-                // É_ÉCÉAÉçÉOÇ…ïKóvÇ»ÉRÅ[ÉhÇæÇØí«â¡
+                // „ÉÄ„Ç§„Ç¢„É≠„Ç∞„Å´ÂøÖË¶Å„Å™„Ç≥„Éº„Éâ„Å†„ÅëËøΩÂä†
                 var dialogContext = await dialogs.CreateContextAsync(turnContext, cancellationToken);
 
                 var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -64,12 +64,12 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task MenuDialog_ShouldGoToWeatherDialog(string language)
         {
-            // åæåÍÇéwíËÇµÇƒÉeÉXÉgÇçÏê¨
+            // Ë®ÄË™û„ÇíÊåáÂÆö„Åó„Å¶„ÉÜ„Çπ„Éà„Çí‰ΩúÊàê
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ÉeÉXÉgÇÃí«â¡Ç∆é¿çs
+            // „ÉÜ„Çπ„Éà„ÅÆËøΩÂä†„Å®ÂÆüË°å
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
@@ -82,11 +82,11 @@ namespace myfirstbot.unittest
             .Send(arrange.localizer["checkweather"])
             .AssertReply((activity) =>
             {
-            // Activity Ç∆ÉAÉ_ÉvÉ^Å[Ç©ÇÁÉRÉìÉeÉLÉXÉgÇçÏê¨
+            // Activity „Å®„Ç¢„ÉÄ„Éó„Çø„Éº„Åã„Çâ„Ç≥„É≥„ÉÜ„Ç≠„Çπ„Éà„Çí‰ΩúÊàê
             var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-            // É_ÉCÉAÉçÉOÉRÉìÉeÉLÉXÉgÇéÊìæ
+            // „ÉÄ„Ç§„Ç¢„É≠„Ç∞„Ç≥„É≥„ÉÜ„Ç≠„Çπ„Éà„ÇíÂèñÂæó
             var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-            // åªç›ÇÃÉ_ÉCÉAÉçÉOÉXÉ^ÉbÉNÇÃàÍî‘è„Ç™ WeatherDialog Ç≈ ÇªÇÃâ∫Ç™ MenuDialog Ç≈Ç†ÇÈÇ±Ç∆ÇämîFÅB
+            // ÁèæÂú®„ÅÆ„ÉÄ„Ç§„Ç¢„É≠„Ç∞„Çπ„Çø„ÉÉ„ÇØ„ÅÆ‰∏ÄÁï™‰∏ä„Åå WeatherDialog „Åß „Åù„ÅÆ‰∏ã„Åå MenuDialog „Åß„ÅÇ„Çã„Åì„Å®„ÇíÁ¢∫Ë™ç„ÄÇ
             var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                 Assert.AreEqual(dialogInstances[0].Id, nameof(WeatherDialog));
             })
@@ -100,7 +100,7 @@ namespace myfirstbot.unittest
 
         public async Task MenuDialog_ShouldGoToScheduleDialog(string language)
         {
-            // åæåÍÇéwíËÇµÇƒÉeÉXÉgÇçÏê¨
+            // Ë®ÄË™û„ÇíÊåáÂÆö„Åó„Å¶„ÉÜ„Çπ„Éà„Çí‰ΩúÊàê
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
@@ -114,7 +114,7 @@ namespace myfirstbot.unittest
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkschedule"]) >= 0);
                 Assert.IsTrue((activity as Activity).Text.IndexOf(arrange.localizer["checkqa"]) >= 0);
             })
-            // ó\íËÇämîFÇëóÇ¡ÇΩéûì_Ç≈ OAuthPrompt.GetUserToken(): not supported by the current adapter ÉGÉâÅ[Ç™èoÇÈ
+            // ‰∫àÂÆö„ÇíÁ¢∫Ë™ç„ÇíÈÄÅ„Å£„ÅüÊôÇÁÇπ„Åß OAuthPrompt.GetUserToken(): not supported by the current adapter „Ç®„É©„Éº„ÅåÂá∫„Çã
             .Test(arrange.localizer["checkschedule"], "dummy")
             .StartTestAsync();
         }
@@ -124,12 +124,12 @@ namespace myfirstbot.unittest
         [DataRow("en-US")]
         public async Task MenuDialog_ShouldGoToQnADialog(string language)
         {
-            // åæåÍÇéwíËÇµÇƒÉeÉXÉgÇçÏê¨
+            // Ë®ÄË™û„ÇíÊåáÂÆö„Åó„Å¶„ÉÜ„Çπ„Éà„Çí‰ΩúÊàê
             var arrange = ArrangeTest(language);
             Thread.CurrentThread.CurrentCulture = new CultureInfo(language);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(language);
 
-            // ÉeÉXÉgÇÃí«â¡Ç∆é¿çs
+            // „ÉÜ„Çπ„Éà„ÅÆËøΩÂä†„Å®ÂÆüË°å
             await arrange.testFlow
             .Send("foo")
             .AssertReply((activity) =>
@@ -142,11 +142,11 @@ namespace myfirstbot.unittest
             .Send(arrange.localizer["checkqa"])
             .AssertReply((activity) =>
             {
-                // Activity Ç∆ÉAÉ_ÉvÉ^Å[Ç©ÇÁÉRÉìÉeÉLÉXÉgÇçÏê¨
+                // Activity „Å®„Ç¢„ÉÄ„Éó„Çø„Éº„Åã„Çâ„Ç≥„É≥„ÉÜ„Ç≠„Çπ„Éà„Çí‰ΩúÊàê
                 var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                // É_ÉCÉAÉçÉOÉRÉìÉeÉLÉXÉgÇéÊìæ
+                // „ÉÄ„Ç§„Ç¢„É≠„Ç∞„Ç≥„É≥„ÉÜ„Ç≠„Çπ„Éà„ÇíÂèñÂæó
                 var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                // åªç›ÇÃÉ_ÉCÉAÉçÉOÉXÉ^ÉbÉNÇÃàÍî‘è„Ç™ QnADialog Ç≈Ç†ÇÈÇ±Ç∆ÇämîFÅB
+                // ÁèæÂú®„ÅÆ„ÉÄ„Ç§„Ç¢„É≠„Ç∞„Çπ„Çø„ÉÉ„ÇØ„ÅÆ‰∏ÄÁï™‰∏ä„Åå QnADialog „Åß„ÅÇ„Çã„Åì„Å®„ÇíÁ¢∫Ë™ç„ÄÇ
                 var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                 Assert.AreEqual(dialogInstances[0].Id, nameof(QnADialog));
             })

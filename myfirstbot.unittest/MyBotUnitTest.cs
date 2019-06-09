@@ -22,22 +22,22 @@ namespace myfirstbot.unittest
     public class MyBotUnitTest
     {
 
-        // ƒeƒXƒg—p•Ï”
+        // ãƒ†ã‚¹ãƒˆç”¨å¤‰æ•°
         string name = "Ken";
 
         private (TestFlow testFlow, BotAdapter adapter, DialogSet dialogs) ArrangeTest(string language, bool returnUserProfile)
         {
-            // Œ¾Œê‚ğw’è‚µ‚ÄƒAƒNƒZƒT[‚ğì¬
+            // è¨€èªã‚’æŒ‡å®šã—ã¦ã‚¢ã‚¯ã‚»ã‚µãƒ¼ã‚’ä½œæˆ
             var accessors = AccessorsFactory.GetAccessors(language, returnUserProfile);
 
-            // ƒAƒ_ƒvƒ^[‚ğì¬
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆ
             var adapter = new TestAdapter()
                 .Use(new SetLanguageMiddleware(accessors.UserProfile));
        
-            // IServiceProvider ‚Ìƒ‚ƒbƒN
+            // IServiceProvider ã®ãƒ¢ãƒƒã‚¯
             var serviceProvider = new Mock<IServiceProvider>();
 
-            // MyBot ƒNƒ‰ƒX‚Å‰ğŒˆ‚·‚×‚«ƒT[ƒrƒX‚ğ“o˜^
+            // MyBot ã‚¯ãƒ©ã‚¹ã§è§£æ±ºã™ã¹ãã‚µãƒ¼ãƒ“ã‚¹ã‚’ç™»éŒ²
             serviceProvider.Setup(x => x.GetService(typeof(LoginDialog))).Returns(new LoginDialog(StringLocalizerFactory.GetStringLocalizer<LoginDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(WeatherDialog))).Returns(new WeatherDialog(accessors, StringLocalizerFactory.GetStringLocalizer<WeatherDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(ProfileDialog))).Returns(new ProfileDialog(accessors, StringLocalizerFactory.GetStringLocalizer<ProfileDialog>()));
@@ -48,7 +48,7 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(QnADialog))).Returns(new QnADialog(accessors, null, null, StringLocalizerFactory.GetStringLocalizer<QnADialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(MenuDialog))).Returns(new MenuDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<MenuDialog>()));
             serviceProvider.Setup(x => x.GetService(typeof(PhotoUpdateDialog))).Returns(new PhotoUpdateDialog(serviceProvider.Object, StringLocalizerFactory.GetStringLocalizer<PhotoUpdateDialog>()));
-            // Šeƒ_ƒCƒAƒƒO‚Ì StringLocalizer ‚ğ’Ç‰Á
+            // å„ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã® StringLocalizer ã‚’è¿½åŠ 
             serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<LoginDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<LoginDialog>());
             serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<WeatherDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<WeatherDialog>());
             serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<ProfileDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<ProfileDialog>());
@@ -57,12 +57,12 @@ namespace myfirstbot.unittest
             serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<ScheduleDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<ScheduleDialog>());
             serviceProvider.Setup(x => x.GetService(typeof(IStringLocalizer<MenuDialog>))).Returns(StringLocalizerFactory.GetStringLocalizer<MenuDialog>());
 
-            // IRecognizer ‚Ìƒ‚ƒbƒN‰»
+            // IRecognizer ã®ãƒ¢ãƒƒã‚¯åŒ–
             var mockRecognizer = new Mock<IRecognizer>();
             mockRecognizer.Setup(l => l.RecognizeAsync(It.IsAny<TurnContext>(), It.IsAny<CancellationToken>()))
                 .Returns((TurnContext turnContext, CancellationToken cancellationToken) =>
                 {
-                    // RecognizerResult ‚Ìì¬
+                    // RecognizerResult ã®ä½œæˆ
                     var recognizerResult = new RecognizerResult()
                     {
                         Intents = new Dictionary<string, IntentScore>(),
@@ -71,20 +71,20 @@ namespace myfirstbot.unittest
 
                     switch (turnContext.Activity.Text)
                     {
-                        case "ƒLƒƒƒ“ƒZƒ‹":
+                        case "ã‚­ãƒ£ãƒ³ã‚»ãƒ«":
                             recognizerResult.Intents.Add("Cancel", new IntentScore() { Score = 1 });
                             break;
-                        case "“V‹C‚ğŠm”F":
+                        case "å¤©æ°—ã‚’ç¢ºèª":
                             recognizerResult.Intents.Add("Weather", new IntentScore() { Score = 1 });
                             break;
-                        case "¡“ú‚Ì“V‹C‚ğŠm”F":
+                        case "ä»Šæ—¥ã®å¤©æ°—ã‚’ç¢ºèª":
                             recognizerResult.Intents.Add("Weather", new IntentScore() { Score = 1 });
-                            recognizerResult.Entities.Add("day", JArray.Parse("[['¡“ú']]"));
+                            recognizerResult.Entities.Add("day", JArray.Parse("[['ä»Šæ—¥']]"));
                             break;
-                        case "ƒwƒ‹ƒv":
+                        case "ãƒ˜ãƒ«ãƒ—":
                             recognizerResult.Intents.Add("Help", new IntentScore() { Score = 1 });
                             break;
-                        case "ƒvƒƒtƒ@ƒCƒ‹‚Ì•ÏX":
+                        case "ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«ã®å¤‰æ›´":
                             recognizerResult.Intents.Add("Profile", new IntentScore() { Score = 1 });
                             break;
                         default:
@@ -94,7 +94,7 @@ namespace myfirstbot.unittest
                     return Task.FromResult(recognizerResult);
                 });
             
-            // –|–óƒT[ƒrƒX‚Ìƒ‚ƒbƒN‰»
+            // ç¿»è¨³ã‚µãƒ¼ãƒ“ã‚¹ã®ãƒ¢ãƒƒã‚¯åŒ–
             var mockTranslateClient = new Mock<ITranslateClient>();
             mockTranslateClient.Setup(l => l.TranslateAsync(It.IsAny<RequestContent>(), It.IsAny<RequestParameter>()))
                 .Returns((RequestContent requestContent, RequestParameter requestParameter) =>
@@ -103,19 +103,19 @@ namespace myfirstbot.unittest
                     switch (requestContent.Text)
                     {
                         case "Cancel":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ƒLƒƒƒ“ƒZƒ‹" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ã‚­ãƒ£ãƒ³ã‚»ãƒ«" } } });
                             break;
                         case "Check weather":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "“V‹C‚ğŠm”F" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "å¤©æ°—ã‚’ç¢ºèª" } } });
                             break;
                         case "Check today's weather":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "¡“ú‚Ì“V‹C‚ğŠm”F" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ä»Šæ—¥ã®å¤©æ°—ã‚’ç¢ºèª" } } });
                             break;
                         case "Help":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ƒwƒ‹ƒv" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ãƒ˜ãƒ«ãƒ—" } } });
                             break;
                         case "Update profile":
-                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ƒvƒƒtƒ@ƒCƒ‹‚Ì•ÏX" } } });
+                            response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«ã®å¤‰æ›´" } } });
                             break;
                         default:
                             response.Add(new ResponseBody() { Translations = new List<Translations>() { new Translations() { Text = "foo" } } });
@@ -124,19 +124,19 @@ namespace myfirstbot.unittest
                     return Task.FromResult(response as IList<ResponseBody>);
                 });
 
-            // MyBot ‚ÅƒŠƒ\[ƒX‚ğ—˜—p‚·‚é‚½‚ß StringLocalizer ‚ğì¬
+            // MyBot ã§ãƒªã‚½ãƒ¼ã‚¹ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ StringLocalizer ã‚’ä½œæˆ
             var localizer = StringLocalizerFactory.GetStringLocalizer<MyBot>();
 
-            // ƒeƒXƒg‘ÎÛ‚ÌƒNƒ‰ƒX‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»
+            // ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ã‚¯ãƒ©ã‚¹ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
             var bot = new MyBot(accessors, mockRecognizer.Object, localizer, serviceProvider.Object, mockTranslateClient.Object);
 
-            // ·‚µ‘Ö‚¦‚é•K—v‚ª‚ ‚é‚à‚Ì‚ğ·‚µ‘Ö‚¦
+            // å·®ã—æ›¿ãˆã‚‹å¿…è¦ãŒã‚ã‚‹ã‚‚ã®ã‚’å·®ã—æ›¿ãˆ
             var photoUpdateDialog = new DummyDialog(nameof(PhotoUpdateDialog));
             bot.ReplaceDialog(photoUpdateDialog);
 
-            // DialogSet ‚ğì¬‚µ‚½ƒNƒ‰ƒX‚æ‚è Refactor
+            // DialogSet ã‚’ä½œæˆã—ãŸã‚¯ãƒ©ã‚¹ã‚ˆã‚Š Refactor
             var dialogSet = (DialogSet)typeof(MyBot).GetField("dialogs", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(bot);
-            // TestFlow ‚Ìì¬
+            // TestFlow ã®ä½œæˆ
             var testFlow = new TestFlow(adapter, bot.OnTurnAsync);
             return (testFlow, adapter, dialogSet);
         }
@@ -148,16 +148,16 @@ namespace myfirstbot.unittest
         {
             var arrange = ArrangeTest(language, true);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
-                .Send(language == "ja-JP" ? "“V‹C‚ğŠm”F" : "Check weather")
+                .Send(language == "ja-JP" ? "å¤©æ°—ã‚’ç¢ºèª" : "Check weather")
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª WeatherDialog ‚Ì choice ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ WeatherDialog ã® choice ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WeatherDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "date");
                 })
@@ -171,9 +171,9 @@ namespace myfirstbot.unittest
         {
             var arrange = ArrangeTest(language, true);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
-                .Test(language == "ja-JP" ? "ƒwƒ‹ƒv":"Help", language == "ja-JP" ? "“V‹C‚Æ—\’è‚ªŠm”F‚Å‚«‚Ü‚·B": "You can check weather and your schedule")
+                .Test(language == "ja-JP" ? "ãƒ˜ãƒ«ãƒ—":"Help", language == "ja-JP" ? "å¤©æ°—ã¨äºˆå®šãŒç¢ºèªã§ãã¾ã™ã€‚": "You can check weather and your schedule")
                 .StartTestAsync();
         }
 
@@ -191,16 +191,16 @@ namespace myfirstbot.unittest
                 MembersAdded = new List<ChannelAccount>() { new ChannelAccount("TestUser", "Test User") }
             };
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
                 .Send(conversationUpdateActivity)
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª SelectLanguageDialog ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ SelectLanguageDialog ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(WelcomeDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "SelectLanguageDialog");
                 })
@@ -223,17 +223,17 @@ namespace myfirstbot.unittest
                 MembersAdded = new List<ChannelAccount>() { new ChannelAccount("TestUser", "Test User") }
             };
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
                 .Send(conversationUpdateActivity)
-                .AssertReply(language == "ja-JP" ? $"‚æ‚¤‚±‚» '{name}' ‚³‚ñI": $"Welcome {name}!")
+                .AssertReply(language == "ja-JP" ? $"ã‚ˆã†ã“ã '{name}' ã•ã‚“ï¼": $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª MenuDialog ‚Ì choice ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ MenuDialog ã® choice ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
@@ -247,16 +247,16 @@ namespace myfirstbot.unittest
         {
             var arrange = ArrangeTest(language, true);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
-                .Test("foo", language == "ja-JP" ? $"‚æ‚¤‚±‚» '{name}' ‚³‚ñI" : $"Welcome {name}!")
+                .Test("foo", language == "ja-JP" ? $"ã‚ˆã†ã“ã '{name}' ã•ã‚“ï¼" : $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª MenuDialog ‚Ì choice ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ MenuDialog ã® choice ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
@@ -288,11 +288,11 @@ namespace myfirstbot.unittest
             .Send(attachmentActivity)
             .AssertReply((activity) =>
             {
-                // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                 var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                 var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª MenuDialog ‚Ì choice ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ MenuDialog ã® choice ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                 var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                 Assert.AreEqual(dialogInstances[0].Id, "choice");
             })
@@ -306,24 +306,24 @@ namespace myfirstbot.unittest
         {
             var arrange = ArrangeTest(language, true);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
-                .Test("foo", language == "ja-JP" ? $"‚æ‚¤‚±‚» '{name}' ‚³‚ñI" : $"Welcome {name}!")
+                .Test("foo", language == "ja-JP" ? $"ã‚ˆã†ã“ã '{name}' ã•ã‚“ï¼" : $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {
                 })
-                .Send(language == "ja-JP" ? "“V‹C‚ğŠm”F" : "Check weather")
+                .Send(language == "ja-JP" ? "å¤©æ°—ã‚’ç¢ºèª" : "Check weather")
                 .AssertReply((activity) =>
                 {
                 })
-                .Test(language == "ja-JP" ? "ƒLƒƒƒ“ƒZƒ‹" : "Cancel", language == "ja-JP" ? "ƒLƒƒƒ“ƒZƒ‹‚µ‚Ü‚·" : "Cancel")
+                .Test(language == "ja-JP" ? "ã‚­ãƒ£ãƒ³ã‚»ãƒ«" : "Cancel", language == "ja-JP" ? "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã™" : "Cancel")
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª MenuDialog ‚Ì choice ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ MenuDialog ã® choice ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(MenuDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "choice");
                 })
@@ -337,24 +337,24 @@ namespace myfirstbot.unittest
         {
             var arrange = ArrangeTest(language, true);
 
-            // ƒeƒXƒg‚Ì’Ç‰Á‚ÆÀs
+            // ãƒ†ã‚¹ãƒˆã®è¿½åŠ ã¨å®Ÿè¡Œ
             await arrange.testFlow
-                .Test("foo", language == "ja-JP" ? $"‚æ‚¤‚±‚» '{name}' ‚³‚ñI" : $"Welcome {name}!")
+                .Test("foo", language == "ja-JP" ? $"ã‚ˆã†ã“ã '{name}' ã•ã‚“ï¼" : $"Welcome {name}!")
                 .AssertReply((activity) =>
                 {                   
                 })
-                .Send(language == "ja-JP" ? "“V‹C‚ğŠm”F" : "Check weather")
+                .Send(language == "ja-JP" ? "å¤©æ°—ã‚’ç¢ºèª" : "Check weather")
                 .AssertReply((activity) =>
                 {
                 })
-                .Send(language == "ja-JP" ? "ƒvƒƒtƒ@ƒCƒ‹‚Ì•ÏX" : "Update profile")
+                .Send(language == "ja-JP" ? "ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«ã®å¤‰æ›´" : "Update profile")
                 .AssertReply((activity) =>
                 {
-                    // Activity ‚ÆƒAƒ_ƒvƒ^[‚©‚çƒRƒ“ƒeƒLƒXƒg‚ğì¬
+                    // Activity ã¨ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‹ã‚‰ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œæˆ
                     var turnContext = new TurnContext(arrange.adapter, activity as Activity);
-                    // ƒ_ƒCƒAƒƒOƒRƒ“ƒeƒLƒXƒg‚ğæ“¾
+                    // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
                     var dc = arrange.dialogs.CreateContextAsync(turnContext).Result;
-                    // Œ»İ‚Ìƒ_ƒCƒAƒƒOƒXƒ^ƒbƒN‚Ìˆê”Ôã‚ª ProfileDialog ‚Ì name ‚Å‚ ‚é‚±‚Æ‚ğŠm”FB
+                    // ç¾åœ¨ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¹ã‚¿ãƒƒã‚¯ã®ä¸€ç•ªä¸ŠãŒ ProfileDialog ã® name ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã€‚
                     var dialogInstances = (dc.Stack.Where(x => x.Id == nameof(ProfileDialog)).First().State["dialogs"] as DialogState).DialogStack;
                     Assert.AreEqual(dialogInstances[0].Id, "adaptive");
                 })
@@ -364,20 +364,20 @@ namespace myfirstbot.unittest
         [TestMethod]
         public async Task MyMiddleware_ShouldStopProcessingWithAttachment()
         {
-            // ƒAƒ_ƒvƒ^[‚ğì¬‚µA—˜—p‚·‚éƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰ÁB
+            // ã‚¢ãƒ€ãƒ—ã‚¿ãƒ¼ã‚’ä½œæˆã—ã€åˆ©ç”¨ã™ã‚‹ãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ ã€‚
             var adapter = new TestAdapter()
                 .Use(new MyMiddleware());
 
-            // “Y•tƒtƒ@ƒCƒ‹‚ğ‘—‚é
+            // æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é€ã‚‹
             var activityWithAttachment = new Activity(ActivityTypes.Message)
             {
                 Attachments = new List<Attachment>() { new Attachment() }
             };
 
-            // ƒeƒXƒg‚ÌÀs
+            // ãƒ†ã‚¹ãƒˆã®å®Ÿè¡Œ
             await new TestFlow(adapter)
             .Send(activityWithAttachment)
-            .AssertReply("ƒeƒLƒXƒg‚ğ‘—‚Á‚Ä‚­‚¾‚³‚¢")
+            .AssertReply("ãƒ†ã‚­ã‚¹ãƒˆã‚’é€ã£ã¦ãã ã•ã„")
             .StartTestAsync();
         }
 
@@ -386,26 +386,26 @@ namespace myfirstbot.unittest
         {
             var nextMiddlewareCalled = false;
 
-            // “o˜^‚µ‚½ƒ~ƒhƒ‹ƒEƒF‚ª‚·‚×‚ÄŒÄ‚Î‚ê‚½Œã‚ÉŒÄ‚Ño‚³‚ê‚éƒR[ƒ‹ƒoƒbƒN
+            // ç™»éŒ²ã—ãŸãƒŸãƒ‰ãƒ«ã‚¦ã‚§ãŒã™ã¹ã¦å‘¼ã°ã‚ŒãŸå¾Œã«å‘¼ã³å‡ºã•ã‚Œã‚‹ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
             Task ValidateMiddleware(ITurnContext turnContext, CancellationToken cancellationToken)
             {
-                // ¡‰ñ‚Í turnContext ‚Ì’†g‚ğŒŸØ‚·‚é•K—v‚Í‚È‚¢‚½‚ßA
-                // Ÿ‚Ìƒ~ƒhƒ‹ƒEƒFƒA‚ªŒÄ‚Ño‚³‚ê‚½‚±‚Æ©‘Ì‚ÅŒŸØ‚ğ¬Œ÷‚Æ‚·‚éB
+                // ä»Šå›ã¯ turnContext ã®ä¸­èº«ã‚’æ¤œè¨¼ã™ã‚‹å¿…è¦ã¯ãªã„ãŸã‚ã€
+                // æ¬¡ã®ãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ãŒå‘¼ã³å‡ºã•ã‚ŒãŸã“ã¨è‡ªä½“ã§æ¤œè¨¼ã‚’æˆåŠŸã¨ã™ã‚‹ã€‚
                 nextMiddlewareCalled = true;
                 return Task.CompletedTask;
             }
-            // MiddlewareSet ‚ÉƒeƒXƒg‘ÎÛ‚Ìƒ~ƒhƒ‹ƒEƒFƒA‚ğ’Ç‰ÁB
+            // MiddlewareSet ã«ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®ãƒŸãƒ‰ãƒ«ã‚¦ã‚§ã‚¢ã‚’è¿½åŠ ã€‚
             var middlewareSet = new MiddlewareSet();
             middlewareSet.Use(new MyMiddleware());
 
-            // ƒeƒLƒXƒgƒƒbƒZ[ƒW‚Æ ITurnContext ‚ğì¬B
+            // ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¨ ITurnContext ã‚’ä½œæˆã€‚
             var activityWithoutAttachment = new Activity(ActivityTypes.Message)
             {
                 Text = "foo"
             };
             var ctx = new TurnContext(new TestAdapter(), activityWithoutAttachment);
 
-            // MiddlewareSet ‚ÉƒƒbƒZ[ƒW‚ğ‘—MB
+            // MiddlewareSet ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é€ä¿¡ã€‚
             await middlewareSet.ReceiveActivityWithStatusAsync(ctx, ValidateMiddleware, default(CancellationToken));
 
             Assert.IsTrue(nextMiddlewareCalled);

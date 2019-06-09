@@ -1,4 +1,4 @@
-﻿using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder;
 using Microsoft.Recognizers.Text;
 using System.Linq;
 using System.Threading;
